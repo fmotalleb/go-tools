@@ -1,3 +1,5 @@
+github.com/FMotalleb/go-tools/env v0.0.0-20250608055420-d2752ae9e533 h1:ZUDezPlcHa6+NiOSFjciA8ldXiLAiFgIIvkV5V2F+is=
+github.com/FMotalleb/go-tools/env v0.0.0-20250608055420-d2752ae9e533/go.mod h1:HF2MnszC8uMR4lju5GKE3rBKYObI9qCgJ0IFB7G8zjM=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
