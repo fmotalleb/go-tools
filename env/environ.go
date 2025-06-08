@@ -1,0 +1,48 @@
+package log
+
+import (
+	"cmp"
+	"os"
+	"strconv"
+	"strings"
+)
+
+// Or returns environment variable value or first non-empty default
+func Or(key string, def ...string) string {
+	items := []string{os.Getenv(key)}
+	items = append(items, def...)
+	return cmp.Or(items...)
+}
+
+// BoolOr returns environment variable as bool or default
+func BoolOr(key string, def ...bool) bool {
+	if env := os.Getenv(key); env != "" {
+		if val, err := strconv.ParseBool(env); err == nil {
+			return val
+		}
+	}
+	return cmp.Or(def...)
+}
+
+// IntOr returns environment variable as int or default
+func IntOr(key string, def ...int) int {
+	if env := os.Getenv(key); env != "" {
+		if val, err := strconv.Atoi(env); err == nil {
+			return val
+		}
+	}
+	return cmp.Or(def...)
+}
+
+// SliceOr returns environment variable as slice (comma-separated) or default
+func SliceOr(key string, def []string) []string {
+	return SliceSeparatorOr(key, ",", def)
+}
+
+// SliceOr returns environment variable as slice (comma-separated) or default
+func SliceSeparatorOr(key string, sep string, def []string) []string {
+	if env := os.Getenv(key); env != "" {
+		return strings.Split(env, sep)
+	}
+	return def
+}
