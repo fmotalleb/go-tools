@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Or returns environment variable value or first non-empty default
@@ -45,4 +46,14 @@ func SliceSeparatorOr(key string, sep string, def []string) []string {
 		return strings.Split(env, sep)
 	}
 	return def
+}
+
+// DurationOr returns environment variable as Duration or default
+func DurationOr(key string, def ...time.Duration) time.Duration {
+	if env := os.Getenv(key); env != "" {
+		if val, err := time.ParseDuration(env); err == nil {
+			return val
+		}
+	}
+	return cmp.Or(def...)
 }
