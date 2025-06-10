@@ -309,6 +309,14 @@ func (b *Builder) ErrorOutputPaths(paths ...string) *Builder {
 	return &builder
 }
 
+// Silent log messages (mostly used for testing)
+func (b *Builder) Silent() *Builder {
+	builder := *b
+	builder.outputPaths = make([]string, 0)
+	builder.errorOutputPaths = make([]string, 0)
+	return &builder
+}
+
 // AddErrorOutputPath adds an error output path
 func (b *Builder) AddErrorOutputPath(path string) *Builder {
 	builder := *b
