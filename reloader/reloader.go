@@ -1,14 +1,97 @@
 package reloader
 
-import "context"
+import (
+	"context"
+	"sync"
+	"time"
+)
 
-type Handler[T any] struct {
-	reset     chan any
+type resetSignal struct{}
+
+type Reloader[T any] struct {
+	reset     chan resetSignal
 	generator func(context.Context) <-chan T
 	handler   func(T)
+	mu        sync.Mutex
+	running   bool
 }
 
-func NewHandler[T any]() *Handler[T] {
+func New[T any](
+	generator func(context.Context) <-chan T,
+	handler func(T),
+) *Reloader[T] {
+	reset := make(chan resetSignal)
+	return &Reloader[T]{
+		reset:     reset,
+		generator: generator,
+		handler:   handler,
+	}
+}
 
-	return &Handler[T]{}
+// Reset worker this is blocking by design if you want to ask worker to reset use ResetTimeout.
+func (h *Reloader[T]) Reset() {
+	h.reset <- resetSignal{}
+}
+
+// ResetTimeout receives a [time.Duration] d and waits for given time trying to reset the worker.
+// default value is a Millisecond
+func (h *Reloader[T]) ResetTimeout(d ...time.Duration) bool {
+	var duration time.Duration = time.Millisecond
+	if len(d) != 0 {
+		duration = d[0]
+	}
+	timer := time.NewTimer(time.Duration(duration))
+	select {
+	case h.reset <- resetSignal{}:
+		return true
+	case <-timer.C:
+		return false
+	}
+}
+
+// Start worker (has exclusive locking) and must be run in a goroutine.
+func (h *Reloader[T]) Start(ctx context.Context) {
+	h.mu.Lock()
+	if h.running {
+		h.mu.Unlock()
+		return
+	}
+	h.running = true
+	h.mu.Unlock()
+
+	defer func() {
+		h.mu.Lock()
+		h.running = false
+		h.mu.Unlock()
+	}()
+
+	for {
+		// Create cancellable context for current generator
+		genCtx, cancel := context.WithCancel(ctx)
+		dataChan := h.generator(genCtx)
+
+		// Process data until reset or context cancellation
+	loop:
+		for {
+			select {
+			case <-ctx.Done():
+				cancel()
+				return
+			case <-h.reset:
+				cancel()
+				break loop // Break inner loop to restart generator
+			case data, ok := <-dataChan:
+				if !ok {
+					cancel()
+					return // Generator closed, exit completely
+				}
+				go h.handler(data)
+			}
+		}
+	}
+}
+
+// Stop the handler.
+func (h *Reloader[T]) Stop() {
+	close(h.reset)
 }
