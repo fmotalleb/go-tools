@@ -36,15 +36,14 @@ func (h *Reloader[T]) Reset() {
 // ResetTimeout receives a [time.Duration] d and waits for given time trying to reset the worker.
 // default value is a Millisecond
 func (h *Reloader[T]) ResetTimeout(d ...time.Duration) bool {
-	var duration time.Duration = time.Millisecond
+	var waitTime time.Duration = time.Millisecond
 	if len(d) != 0 {
-		duration = d[0]
+		waitTime = d[0]
 	}
-	timer := time.NewTimer(time.Duration(duration))
 	select {
 	case h.reset <- resetSignal{}:
 		return true
-	case <-timer.C:
+	case <-time.After(waitTime):
 		return false
 	}
 }
