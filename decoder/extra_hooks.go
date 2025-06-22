@@ -8,9 +8,12 @@ import (
 	"github.com/spf13/cast"
 )
 
-// var looseTypeCaster func(reflect.Type, reflect.Type, interface{}) (interface{}, error) = LooseTypeCaster()
-
-func LooseTypeCaster() func(reflect.Type, reflect.Type, interface{}) (interface{}, error) {
+// // var looseTypeCaster func(reflect.Type, reflect.Type, interface{}) (interface{}, error) = LooseTypeCaster()
+//
+//	func getLooseTypeCasterInstance() func(reflect.Type, reflect.Type, interface{}) (interface{}, error) {
+//		return LooseTypeCaster()
+//	}
+func LooseTypeCaster() mapstructure.DecodeHookFuncType {
 	return func(from, to reflect.Type, val interface{}) (interface{}, error) {
 		if from.Kind() == to.Kind() {
 			return val, nil
