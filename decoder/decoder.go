@@ -2,21 +2,32 @@ package decoder
 
 import (
 	"errors"
+	"time"
 
 	"github.com/go-viper/mapstructure/v2"
 )
 
-func GetHooksDefault() []mapstructure.DecodeHookFunc {
+func GetHooks() []mapstructure.DecodeHookFunc {
 	return []mapstructure.DecodeHookFunc{
+		// mapstructure.StringToBasicTypeHookFunc(),
 		mapstructure.StringToTimeDurationHookFunc(),
+		mapstructure.StringToNetIPAddrPortHookFunc(),
+		mapstructure.StringToNetIPAddrHookFunc(),
 		mapstructure.StringToSliceHookFunc(","),
+		mapstructure.TextUnmarshallerHookFunc(),
+		mapstructure.StringToURLHookFunc(),
+		mapstructure.StringToIPHookFunc(),
+		mapstructure.StringToIPNetHookFunc(),
+		mapstructure.StringToTimeHookFunc(time.RFC3339),
+		mapstructure.RecursiveStructToMapHookFunc(),
+		LooseTypeCaster(),
 		DecodeHookFunc(),
 	}
 }
 
 func Build(item any) (*mapstructure.Decoder, error) {
 	hook := mapstructure.ComposeDecodeHookFunc(
-		GetHooksDefault(),
+		GetHooks(),
 	)
 
 	decoderConfig := &mapstructure.DecoderConfig{
