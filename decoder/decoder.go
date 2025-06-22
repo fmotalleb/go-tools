@@ -28,7 +28,7 @@ func GetHooks() []mapstructure.DecodeHookFunc {
 
 func Build(item any) (*mapstructure.Decoder, error) {
 	hook := mapstructure.ComposeDecodeHookFunc(
-		GetHooks(),
+		GetHooks()...,
 	)
 
 	decoderConfig := &mapstructure.DecoderConfig{
