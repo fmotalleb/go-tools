@@ -3,6 +3,7 @@ package decoder
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/spf13/cast"
@@ -62,44 +63,6 @@ func looseTypeCasterImpl(from, to reflect.Type, val interface{}) (interface{}, e
 	case reflect.Bool:
 		return cast.ToBoolE(val)
 
-	// // Slice types
-	// case reflect.Slice:
-	// 	return convertToSlice(from, to, val)
-
-	// // Array types
-	// case reflect.Array:
-	// 	return convertToArray(from, to, val)
-
-	// // Map types
-	// case reflect.Map:
-	// 	return convertToMap(from, to, val)
-
-	// // Pointer types
-	// case reflect.Ptr:
-	// 	return convertToPointer(from, to, val)
-
-	// // Interface types
-	// case reflect.Interface:
-	// 	if to == reflect.TypeOf((*interface{})(nil)).Elem() {
-	// 		return val, nil
-	// 	}
-	// 	return val, nil
-
-	// // Struct types
-	// case reflect.Struct:
-	// 	return convertToStruct(from, to, val)
-
-	// Uintptr type
-	// case reflect.Uintptr:
-	// 	if num, err := cast.ToUint64E(val); err == nil {
-	// 		return uintptr(num), nil
-	// 	}
-	// 	return val, fmt.Errorf("cannot convert %T to uintptr", val)
-
-	// Unsupported types
-	// case reflect.Chan, reflect.Func, reflect.UnsafePointer:
-	// 	return val, fmt.Errorf("conversion to %s not supported", to.Kind())
-
 	default:
 		return val, nil
 	}
@@ -136,167 +99,13 @@ func convertToComplex128(val interface{}) (interface{}, error) {
 	return val, fmt.Errorf("cannot convert %T to complex128", val)
 }
 
-func convertToSlice(from, to reflect.Type, val interface{}) (interface{}, error) {
-	elemType := to.Elem()
-
-	// Handle common slice types using cast library
-	switch elemType.Kind() {
-	case reflect.String:
-		return cast.ToStringSliceE(val)
-	case reflect.Int:
-		return cast.ToIntSliceE(val)
-	case reflect.Bool:
-		return cast.ToBoolSliceE(val)
-	case reflect.Interface:
-		return cast.ToSliceE(val)
-	}
-
-	// For other types, convert manually
-	sourceSlice, err := cast.ToSliceE(val)
-	if err != nil {
-		return val, err
-	}
-
-	resultSlice := reflect.MakeSlice(to, len(sourceSlice), len(sourceSlice))
-	for i, item := range sourceSlice {
-		converted, err := convertValue(reflect.TypeOf(item), elemType, item)
-		if err != nil {
-			return val, fmt.Errorf("failed to convert slice element at index %d: %w", i, err)
+// stringToSliceHookFunc converts strings to slices.
+func StringToSliceHookFunc(sep string) mapstructure.DecodeHookFunc {
+	return func(from reflect.Type, to reflect.Type, data interface{}) (interface{}, error) {
+		if from.Kind() != reflect.String || to.Kind() != reflect.Slice {
+			return data, nil
 		}
-		resultSlice.Index(i).Set(reflect.ValueOf(converted))
+		slice := strings.Split(data.(string), sep)
+		return slice, nil
 	}
-
-	return resultSlice.Interface(), nil
-}
-
-func convertToArray(from, to reflect.Type, val interface{}) (interface{}, error) {
-	sourceSlice, err := cast.ToSliceE(val)
-	if err != nil {
-		return val, err
-	}
-
-	arrayLen := to.Len()
-	arrayVal := reflect.New(to).Elem()
-	elemType := to.Elem()
-
-	minLen := arrayLen
-	if len(sourceSlice) < minLen {
-		minLen = len(sourceSlice)
-	}
-
-	for i := 0; i < minLen; i++ {
-		converted, err := convertValue(reflect.TypeOf(sourceSlice[i]), elemType, sourceSlice[i])
-		if err != nil {
-			return val, fmt.Errorf("failed to convert array element at index %d: %w", i, err)
-		}
-		arrayVal.Index(i).Set(reflect.ValueOf(converted))
-	}
-
-	return arrayVal.Interface(), nil
-}
-
-func convertToMap(from, to reflect.Type, val interface{}) (interface{}, error) {
-	keyType := to.Key()
-	valueType := to.Elem()
-
-	// Handle common map types
-	if keyType.Kind() == reflect.String {
-		switch valueType.Kind() {
-		case reflect.Interface:
-			return cast.ToStringMapE(val)
-		case reflect.String:
-			return cast.ToStringMapStringE(val)
-		case reflect.Slice:
-			if valueType.Elem().Kind() == reflect.String {
-				return cast.ToStringMapStringSliceE(val)
-			}
-		}
-	}
-
-	// Manual conversion for other map types
-	sourceMap, err := cast.ToStringMapE(val)
-	if err != nil {
-		return val, err
-	}
-
-	resultMap := reflect.MakeMap(to)
-	for k, v := range sourceMap {
-		convertedKey, err := convertValue(reflect.TypeOf(k), keyType, k)
-		if err != nil {
-			return val, fmt.Errorf("failed to convert map key %v: %w", k, err)
-		}
-
-		convertedValue, err := convertValue(reflect.TypeOf(v), valueType, v)
-		if err != nil {
-			return val, fmt.Errorf("failed to convert map value for key %v: %w", k, err)
-		}
-
-		resultMap.SetMapIndex(reflect.ValueOf(convertedKey), reflect.ValueOf(convertedValue))
-	}
-
-	return resultMap.Interface(), nil
-}
-
-func convertToPointer(from, to reflect.Type, val interface{}) (interface{}, error) {
-	if val == nil {
-		return nil, nil
-	}
-
-	elemType := to.Elem()
-
-	// Dereference if source is pointer
-	if from.Kind() == reflect.Ptr {
-		sourceVal := reflect.ValueOf(val)
-		if sourceVal.IsNil() {
-			return nil, nil
-		}
-		val = sourceVal.Elem().Interface()
-		from = reflect.TypeOf(val)
-	}
-
-	converted, err := convertValue(from, elemType, val)
-	if err != nil {
-		return val, err
-	}
-
-	ptr := reflect.New(elemType)
-	ptr.Elem().Set(reflect.ValueOf(converted))
-
-	return ptr.Interface(), nil
-}
-
-func convertToStruct(from, to reflect.Type, val interface{}) (interface{}, error) {
-	if from.Kind() != reflect.Map {
-		return val, fmt.Errorf("can only convert map to struct, got %s", from.Kind())
-	}
-
-	// Use mapstructure without recursive decode hook to avoid stack overflow
-	result := reflect.New(to).Interface()
-	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:           result,
-		WeaklyTypedInput: true,
-		DecodeHook: mapstructure.ComposeDecodeHookFunc(
-			mapstructure.StringToTimeDurationHookFunc(),
-			mapstructure.StringToSliceHookFunc(","),
-		),
-	})
-	if err != nil {
-		return val, err
-	}
-
-	if err := decoder.Decode(val); err != nil {
-		return val, err
-	}
-
-	return reflect.ValueOf(result).Elem().Interface(), nil
-}
-
-// Helper function for direct value conversion without decode hooks
-func convertValue(from, to reflect.Type, val interface{}) (interface{}, error) {
-	if from == to {
-		return val, nil
-	}
-
-	// Use the same logic as the main function but without recursion
-	return looseTypeCasterImpl(from, to, val)
 }

@@ -10,11 +10,11 @@ import (
 func GetHooks() []mapstructure.DecodeHookFunc {
 	return []mapstructure.DecodeHookFunc{
 		// disabled for now as the loose type caster supports more types
-		// mapstructure.StringToBasicTypeHookFunc(),
+		mapstructure.StringToBasicTypeHookFunc(),
 		mapstructure.StringToTimeDurationHookFunc(),
 		mapstructure.StringToNetIPAddrPortHookFunc(),
 		mapstructure.StringToNetIPAddrHookFunc(),
-		mapstructure.StringToSliceHookFunc(","),
+		StringToSliceHookFunc(","),
 		mapstructure.TextUnmarshallerHookFunc(),
 		mapstructure.StringToURLHookFunc(),
 		mapstructure.StringToIPHookFunc(),
