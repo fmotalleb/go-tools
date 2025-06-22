@@ -70,31 +70,31 @@ func looseTypeCasterImpl(from, to reflect.Type, val interface{}) (interface{}, e
 
 func convertToComplex64(val interface{}) (interface{}, error) {
 	if str, ok := val.(string); ok {
-		var real, imag float32
-		n, err := fmt.Sscanf(str, "(%g%+gi)", &real, &imag)
+		var realN, imagN float32
+		n, err := fmt.Sscanf(str, "(%g%+gi)", &realN, &imagN)
 		if err != nil || n != 2 {
 			// Try alternative formats
-			n, err = fmt.Sscanf(str, "%g%+gi", &real, &imag)
+			n, err = fmt.Sscanf(str, "%g%+gi", &realN, &imagN)
 			if err != nil || n != 2 {
 				return val, fmt.Errorf("cannot parse complex64 from string: %s", str)
 			}
 		}
-		return complex(real, imag), nil
+		return complex(realN, imagN), nil
 	}
 	return val, fmt.Errorf("cannot convert %T to complex64", val)
 }
 
 func convertToComplex128(val interface{}) (interface{}, error) {
 	if str, ok := val.(string); ok {
-		var real, imag float64
-		n, err := fmt.Sscanf(str, "(%g%+gi)", &real, &imag)
+		var realN, imagN float64
+		n, err := fmt.Sscanf(str, "(%g%+gi)", &realN, &imagN)
 		if err != nil || n != 2 {
-			n, err = fmt.Sscanf(str, "%g%+gi", &real, &imag)
+			n, err = fmt.Sscanf(str, "%g%+gi", &realN, &imagN)
 			if err != nil || n != 2 {
 				return val, fmt.Errorf("cannot parse complex128 from string: %s", str)
 			}
 		}
-		return complex(real, imag), nil
+		return complex(realN, imagN), nil
 	}
 	return val, fmt.Errorf("cannot convert %T to complex128", val)
 }

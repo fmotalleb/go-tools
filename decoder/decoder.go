@@ -10,18 +10,18 @@ import (
 func GetHooks() []mapstructure.DecodeHookFunc {
 	return []mapstructure.DecodeHookFunc{
 		// disabled for now as the loose type caster supports more types
-		mapstructure.StringToBasicTypeHookFunc(),
+		StringToSliceHookFunc(","),
 		mapstructure.StringToTimeDurationHookFunc(),
+		mapstructure.StringToTimeHookFunc(time.RFC3339),
+		LooseTypeCaster(),
 		mapstructure.StringToNetIPAddrPortHookFunc(),
 		mapstructure.StringToNetIPAddrHookFunc(),
-		StringToSliceHookFunc(","),
 		mapstructure.TextUnmarshallerHookFunc(),
 		mapstructure.StringToURLHookFunc(),
 		mapstructure.StringToIPHookFunc(),
 		mapstructure.StringToIPNetHookFunc(),
-		mapstructure.StringToTimeHookFunc(time.RFC3339),
 		mapstructure.RecursiveStructToMapHookFunc(),
-		LooseTypeCaster(),
+		// mapstructure.StringToBasicTypeHookFunc(),
 		DecodeHookFunc(),
 	}
 }
@@ -38,7 +38,6 @@ func Build(item any) (*mapstructure.Decoder, error) {
 		WeaklyTypedInput: true,
 		DecodeHook:       hook,
 		DecodeNil:        true,
-		ZeroFields:       true,
 	}
 	decoder, err := mapstructure.NewDecoder(decoderConfig)
 	return decoder, err
