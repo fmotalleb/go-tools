@@ -9,6 +9,15 @@ import (
 	"github.com/spf13/cast"
 )
 
+var registeredHooks = []mapstructure.DecodeHookFunc{}
+
+func RegisterHook(hook mapstructure.DecodeHookFunc) {
+	if hook == nil {
+		return
+	}
+	registeredHooks = append(registeredHooks, hook)
+}
+
 func LooseTypeCaster() mapstructure.DecodeHookFunc {
 	return looseTypeCasterImpl
 }

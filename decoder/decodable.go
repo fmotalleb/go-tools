@@ -7,7 +7,7 @@ import (
 )
 
 type Decodable interface {
-	Decode(reflect.Type, reflect.Type, interface{}) error
+	Decode(reflect.Type, reflect.Type, interface{}) (any, error)
 }
 
 func Of(from any) (Decodable, error) {
@@ -16,7 +16,7 @@ func Of(from any) (Decodable, error) {
 	if !ok {
 		return opt, nil
 	}
-	if err := opt.Decode(reflect.TypeOf(from), reflect.TypeOf(to), from); err != nil {
+	if _, err := opt.Decode(reflect.TypeOf(from), reflect.TypeOf(to), from); err != nil {
 		return opt, err
 	}
 	return opt, nil
@@ -28,9 +28,6 @@ func DecodeHookFunc() mapstructure.DecodeHookFunc {
 		if !ok {
 			return val, nil
 		}
-		if err := opt.Decode(from, to, val); err != nil {
-			return nil, err
-		}
-		return reflect.ValueOf(opt).Elem().Interface(), nil
+		return opt.Decode(from, to, val)
 	}
 }
