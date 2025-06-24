@@ -88,3 +88,8 @@ func FromContext(ctx context.Context) *zap.Logger {
 	}
 	return zap.NewNop()
 }
+
+// Of is an alias to FromContext
+func Of(ctx context.Context) *zap.Logger {
+	return FromContext(ctx)
+}

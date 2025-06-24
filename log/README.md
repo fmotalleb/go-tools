@@ -327,7 +327,6 @@ export ZAPLOG_DISABLE_STACKTRACE=false
 #### Docker Compose Example
 
 ```yaml
-version: '3.8'
 services:
   app:
     image: my-app:latest
