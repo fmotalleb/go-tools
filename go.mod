@@ -5,7 +5,7 @@ go 1.24.2
 require (
 	dario.cat/mergo v1.0.2
 	github.com/alecthomas/assert/v2 v2.11.0
-	github.com/go-viper/mapstructure/v2 v2.2.1
+	github.com/go-viper/mapstructure/v2 v2.3.0
 	github.com/spf13/cast v1.9.2
 	github.com/spf13/viper v1.20.1
 	go.uber.org/zap v1.27.0
