@@ -67,7 +67,8 @@ func mergeFromPattern(ctx context.Context, includeField string, pattern string, 
 		return nil, fmt.Errorf("invalid glob pattern: %w", err)
 	}
 	if len(files) == 0 {
-		log.Warn("no config files matched pattern", zap.String("pattern", pattern))
+		log.Debug("no config files matched pattern, using it as full path address", zap.String("pattern", pattern))
+		files = []string{pattern}
 	}
 
 	result := make(map[string]any)
