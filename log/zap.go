@@ -12,6 +12,13 @@ import (
 
 type BuilderFunc = func(*Builder) *Builder
 
+var (
+	DefaultLevel                           = zapcore.InfoLevel
+	DefaultFormat                          = zapcore.LowercaseLevelEncoder
+	DefaultDevelopment                     = false
+	DefaultSampling    *zap.SamplingConfig = nil
+)
+
 // Builder provides a fluent interface for configuring zap logger
 type Builder struct {
 	level             zapcore.Level
@@ -31,21 +38,21 @@ type Builder struct {
 // NewBuilder creates a new LoggerBuilder with default values
 func NewBuilder() *Builder {
 	return &Builder{
-		level:             zapcore.InfoLevel,
-		development:       false,
+		level:             DefaultLevel,
+		development:       DefaultDevelopment,
 		disableCaller:     false,
 		disableStacktrace: false,
-		sampling:          nil,
+		sampling:          DefaultSampling,
 		encoding:          "json",
 		encoderConfig: zapcore.EncoderConfig{
 			TimeKey:        "timestamp",
 			LevelKey:       "level",
-			NameKey:        "ZAPLOGger",
+			NameKey:        "logger",
 			CallerKey:      "caller",
 			MessageKey:     "message",
 			StacktraceKey:  "stacktrace",
 			LineEnding:     zapcore.DefaultLineEnding,
-			EncodeLevel:    zapcore.LowercaseLevelEncoder,
+			EncodeLevel:    DefaultFormat,
 			EncodeTime:     zapcore.ISO8601TimeEncoder,
 			EncodeDuration: zapcore.SecondsDurationEncoder,
 			EncodeCaller:   zapcore.ShortCallerEncoder,
