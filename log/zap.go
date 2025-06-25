@@ -437,11 +437,11 @@ func (b *Builder) FromEnv() *Builder {
 	builder := *b
 
 	// Core configuration
-	level := env.Or("ZAPLOG_LEVEL", "info")
+	level := env.Or("ZAPLOG_LEVEL", DefaultLevel.String())
 	builder = *builder.Level(level)
 
 	// Development mode
-	isDev := env.BoolOr("ZAPLOG_DEVELOPMENT", false)
+	isDev := env.BoolOr("ZAPLOG_DEVELOPMENT", DefaultDevelopment)
 	if isDev {
 		builder = *builder.Development(true)
 	}
@@ -462,7 +462,7 @@ func (b *Builder) FromEnv() *Builder {
 	}
 
 	// Level encoding
-	levelFormat := env.Or("ZAPLOG_LEVEL_FORMAT", "lowercase")
+	levelFormat := env.Or("ZAPLOG_LEVEL_FORMAT")
 	switch strings.ToLower(levelFormat) {
 	case "lowercase":
 		builder = *builder.LowercaseLevel()
