@@ -19,6 +19,16 @@ var (
 	DefaultSampling    *zap.SamplingConfig = nil
 )
 
+func SetDebugDefaults() {
+	DefaultLevel = zapcore.DebugLevel
+	DefaultFormat = zapcore.CapitalColorLevelEncoder
+	DefaultDevelopment = true
+	DefaultSampling = &zap.SamplingConfig{
+		Initial:    100,
+		Thereafter: 100,
+	}
+}
+
 // Builder provides a fluent interface for configuring zap logger
 type Builder struct {
 	level             zapcore.Level
