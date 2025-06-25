@@ -77,12 +77,12 @@ func mergeFromPattern(ctx context.Context, includeField string, pattern string, 
 		conf, err := readAndResolveIncludes(ctx, includeField, file, visited)
 		if err != nil {
 			log.Error("failed to read and merge includes", zap.String("file", file), zap.Error(err))
-			return nil, err
+			continue
 		}
 		result, err = deepMerge(result, conf)
 		if err != nil {
 			log.Error("deep merge failed", zap.String("file", file), zap.Error(err))
-			return nil, err
+			continue
 		}
 		log.Debug("merged successfully", zap.String("file", file))
 	}
