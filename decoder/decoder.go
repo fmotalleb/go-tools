@@ -11,6 +11,7 @@ import (
 func GetHooks() []mapstructure.DecodeHookFunc {
 	return []mapstructure.DecodeHookFunc{
 		// disabled for now as the loose type caster supports more types
+		hooks.EnvSubst(),
 		hooks.StringToSliceHookFunc(","),
 		mapstructure.StringToTimeDurationHookFunc(),
 		mapstructure.StringToTimeHookFunc(time.RFC3339),
