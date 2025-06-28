@@ -31,7 +31,9 @@ func deepMerge(dst, src map[string]any) (map[string]any, error) {
 }
 
 func parseConfig(ctx context.Context, ext string, reader io.Reader, path string) (map[string]any, error) {
-	log := log.FromContext(ctx)
+	log := log.
+		FromContext(ctx).
+		With(zap.String("path", path))
 	if err := ctx.Err(); err != nil {
 		return nil, errors.Join(
 			errors.New("config reader deadline exceeded"),
@@ -41,50 +43,67 @@ func parseConfig(ctx context.Context, ext string, reader io.Reader, path string)
 	v := viper.New()
 	v.SetConfigType(ext)
 	if err := v.ReadConfig(reader); err != nil {
-		log.Error("failed to read config", zap.String("path", path), zap.Error(err))
+		log.Error("failed to read config", zap.Error(err))
 		return nil, err
 	}
 
 	raw := make(map[string]any)
 	if err := v.Unmarshal(&raw); err != nil {
-		log.Error("failed to unmarshal config", zap.String("path", path), zap.Error(err))
+		log.Error("failed to unmarshal config", zap.Error(err))
 		return nil, err
 	}
 	return raw, nil
 }
 
 func mergeFromPattern(ctx context.Context, includeField string, pattern string, visited map[string]bool) (map[string]any, error) {
-	log := log.FromContext(ctx)
+	log := log.
+		FromContext(ctx).
+		With(zap.String("pattern", pattern))
 	if err := ctx.Err(); err != nil {
 		return nil, errors.Join(
 			errors.New("config reader deadline exceeded"),
 			err,
 		)
 	}
-	files, err := filepath.Glob(pattern)
-	if err != nil {
-		log.Error("invalid glob pattern", zap.String("pattern", pattern), zap.Error(err))
-		return nil, fmt.Errorf("invalid glob pattern: %w", err)
+	var files []string
+	if url, err := url.Parse(pattern); err != nil {
+		switch url.Scheme {
+		case "http", "https":
+			log.Debug("pattern parsed as a url with https|http schema")
+			files = []string{pattern}
+		default:
+			log.Debug("pattern parsed as a url but no https|http schema found")
+			files = make([]string, 0)
+		}
 	}
 	if len(files) == 0 {
-		log.Debug("no config files matched pattern, using it as full path address", zap.String("pattern", pattern))
-		files = []string{pattern}
+		var err error
+		files, err = filepath.Glob(pattern)
+		if err != nil {
+			log.Error("invalid glob pattern", zap.Error(err))
+			return nil, fmt.Errorf("invalid glob pattern: %w", err)
+		}
+		if len(files) == 0 {
+			log.Debug("no config files matched pattern, using it as full path address")
+		}
 	}
 
 	result := make(map[string]any)
 	for _, file := range files {
-		log.Debug("merging config file", zap.String("file", file))
+		innerLog := log.
+			With(zap.String("file", file))
+		innerLog.Debug("merging config file")
 		conf, err := readAndResolveIncludes(ctx, includeField, file, visited)
 		if err != nil {
-			log.Error("failed to read and merge includes", zap.String("file", file), zap.Error(err))
+			innerLog.Error("failed to read and merge includes", zap.Error(err))
 			continue
 		}
 		result, err = deepMerge(result, conf)
 		if err != nil {
-			log.Error("deep merge failed", zap.String("file", file), zap.Error(err))
+			innerLog.Error("deep merge failed", zap.Error(err))
 			continue
 		}
-		log.Debug("merged successfully", zap.String("file", file))
+		innerLog.Debug("merged successfully")
 	}
 	return result, nil
 }
@@ -98,6 +117,7 @@ func readAndResolveIncludes(ctx context.Context, includeField string, path strin
 		)
 	}
 	absPath := path
+	log = log.With(zap.String("path", absPath))
 	if u, err := url.Parse(path); err == nil && (u.Scheme == "http" || u.Scheme == "https") {
 		absPath = u.String()
 	} else if p, err := filepath.Abs(path); err == nil {
@@ -105,10 +125,10 @@ func readAndResolveIncludes(ctx context.Context, includeField string, path strin
 	}
 
 	if visited[absPath] {
-		log.Warn("circular include detected", zap.String("path", absPath))
+		log.Warn("circular include detected")
 		return make(map[string]any), nil
 	}
-	log.Info("reading config", zap.String("path", absPath))
+	log.Info("reading config")
 	visited[absPath] = true
 
 	reader, ext, err := readFrom(ctx, path)
@@ -120,7 +140,7 @@ func readAndResolveIncludes(ctx context.Context, includeField string, path strin
 	if err != nil {
 		return nil, err
 	}
-	log.Debug("parsed config", zap.String("path", path))
+	log.Debug("parsed config")
 
 	raw, err = readIncludedFiles(ctx, includeField, raw, path, visited)
 	if err != nil {
@@ -131,7 +151,9 @@ func readAndResolveIncludes(ctx context.Context, includeField string, path strin
 }
 
 func readIncludedFiles(ctx context.Context, includeField string, raw map[string]any, path string, visited map[string]bool) (map[string]any, error) {
-	log := log.FromContext(ctx)
+	log := log.
+		FromContext(ctx).
+		With(zap.String("from", path))
 	if err := ctx.Err(); err != nil {
 		return nil, errors.Join(
 			errors.New("config reader deadline exceeded"),
@@ -141,18 +163,19 @@ func readIncludedFiles(ctx context.Context, includeField string, raw map[string]
 	if includes, ok := raw[includeField].([]any); ok {
 		for _, inc := range includes {
 			if pattern, ok := inc.(string); ok {
-				log.Info("processing include", zap.String("from", path), zap.String("pattern", pattern))
+				log = log.With(zap.String("pattern", pattern))
+				log.Info("processing include")
 				included, err := mergeFromPattern(ctx, includeField, pattern, visited)
 				if err != nil {
-					log.Error("pailed to process include", zap.String("pattern", pattern), zap.Error(err))
+					log.Error("failed to process include", zap.Error(err))
 					return nil, err
 				}
 				raw, err = deepMerge(included, raw)
 				if err != nil {
-					log.Error("peep merge failed during include", zap.String("pattern", pattern), zap.Error(err))
+					log.Error("peep merge failed during include", zap.Error(err))
 					return nil, err
 				}
-				log.Debug("include merged", zap.String("pattern", pattern))
+				log.Debug("include merged")
 			}
 		}
 	}
