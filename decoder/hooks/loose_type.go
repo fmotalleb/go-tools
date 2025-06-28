@@ -1,22 +1,12 @@
-package decoder
+package hooks
 
 import (
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/spf13/cast"
 )
-
-var registeredHooks = []mapstructure.DecodeHookFunc{}
-
-func RegisterHook(hook mapstructure.DecodeHookFunc) {
-	if hook == nil {
-		return
-	}
-	registeredHooks = append(registeredHooks, hook)
-}
 
 func LooseTypeCaster() mapstructure.DecodeHookFunc {
 	return looseTypeCasterImpl
@@ -106,15 +96,4 @@ func convertToComplex128(val interface{}) (interface{}, error) {
 		return complex(realN, imagN), nil
 	}
 	return val, fmt.Errorf("cannot convert %T to complex128", val)
-}
-
-// stringToSliceHookFunc converts strings to slices.
-func StringToSliceHookFunc(sep string) mapstructure.DecodeHookFunc {
-	return func(from reflect.Type, to reflect.Type, data interface{}) (interface{}, error) {
-		if from.Kind() != reflect.String || to.Kind() != reflect.Slice {
-			return data, nil
-		}
-		slice := strings.Split(data.(string), sep)
-		return slice, nil
-	}
 }

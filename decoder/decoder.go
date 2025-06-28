@@ -4,16 +4,17 @@ import (
 	"errors"
 	"time"
 
+	"github.com/FMotalleb/go-tools/decoder/hooks"
 	"github.com/go-viper/mapstructure/v2"
 )
 
 func GetHooks() []mapstructure.DecodeHookFunc {
 	return []mapstructure.DecodeHookFunc{
 		// disabled for now as the loose type caster supports more types
-		StringToSliceHookFunc(","),
+		hooks.StringToSliceHookFunc(","),
 		mapstructure.StringToTimeDurationHookFunc(),
 		mapstructure.StringToTimeHookFunc(time.RFC3339),
-		LooseTypeCaster(),
+		hooks.LooseTypeCaster(),
 		mapstructure.StringToNetIPAddrPortHookFunc(),
 		mapstructure.StringToNetIPAddrHookFunc(),
 		mapstructure.TextUnmarshallerHookFunc(),
@@ -27,7 +28,7 @@ func GetHooks() []mapstructure.DecodeHookFunc {
 }
 
 func Build(item any) (*mapstructure.Decoder, error) {
-	allHooks := registeredHooks
+	allHooks := hooks.GetExtraHooks()
 	allHooks = append(allHooks, GetHooks()...)
 
 	hook := mapstructure.ComposeDecodeHookFunc(
