@@ -70,6 +70,7 @@ fmt.Println(git.String())      // v1.2.3 (main/4ac0ffee) 7m0s ago
 
 > [!CAUTION]
 > Do not modify public variables ins this module
+>
 > It will produce unpredictable consequences.
 
 ---
