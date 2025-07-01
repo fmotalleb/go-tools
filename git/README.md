@@ -1,12 +1,17 @@
-### 3. **Workflow or Result**
+# Git metadata
 
-#### 📦 Import
+## ✅ Features
+
+* Access your applications git metadata using buildtime variables.
+* Parses and freezes injected values at init-time.
+
+## 📦 Import
 
 ```go
 import "github.com/FMotalleb/go-tools/git"
 ```
 
-#### 🛠️ Example GoReleaser Configuration
+## 🛠️ Example GoReleaser Configuration
 
 ```yaml
 version: 2
@@ -28,9 +33,9 @@ builds:
       - "-X github.com/FMotalleb/go-tools/git.Branch={{.Branch}}"
 ```
 
-#### 🛠️ Example Go Build Script
+## 🛠️ Example Go Build Script
 
-```
+```bash
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -49,16 +54,16 @@ go build -trimpath -ldflags "-s -w \
     -o "${OUTPUT}"
 ```
 
-#### 🔧 Provided Variables (Injected via `ldflags`)
+## 🔧 Provided Variables (Injected via `ldflags`)
 
-| Variable  | Purpose              | Default           |
-| --------- | -------------------- | ----------------- |
-| `Version` | Semantic version     | `v0.0.0-dev`      |
-| `Commit`  | Short git commit     | `--`              |
-| `Date`    | Build date (RFC3339) | `2025-06-21T...Z` |
-| `Branch`  | Git branch name      | `dev-branch`      |
+| Variable  | Purpose                       | Default           |
+| --------- | ----------------------------- | ----------------- |
+| `Version` | Semantic version (latest tag) | `v0.0.0-dev`      |
+| `Commit`  | Short git commit              | `--`              |
+| `Date`    | Build date (RFC3339)          | `2025-06-21T...Z` |
+| `Branch`  | Git branch name               | `dev-branch`      |
 
-#### 🧪 Example Usage
+## 🧪 Example Usage
 
 ```go
 fmt.Println(git.GetVersion())  // e.g. v1.2.3
@@ -72,13 +77,3 @@ fmt.Println(git.String())      // v1.2.3 (main/4ac0ffee) 7m0s ago
 > Do not modify public variables ins this module
 >
 > It will produce unpredictable consequences.
-
----
-
-### ✅ Features
-
-* No runtime Git dependency.
-* Fully static binaries.
-* Parses and freezes injected values at init-time.
-* `time.Time`-typed date support.
-* Human-readable version string (`String()`).
