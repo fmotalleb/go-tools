@@ -82,9 +82,3 @@ fmt.Println(git.String())      // v1.2.3 (main/4ac0ffee) 7m0s ago
 * Parses and freezes injected values at init-time.
 * `time.Time`-typed date support.
 * Human-readable version string (`String()`).
-
----
-
-### 📂 License
-
-MIT or similar — your choice. (Add a `LICENSE` file if needed.)
