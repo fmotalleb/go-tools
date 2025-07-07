@@ -1,15 +1,15 @@
-package glob_test
+package wildcard_test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/FMotalleb/go-tools/internal/models"
-	"github.com/FMotalleb/go-tools/matcher/glob"
+	"github.com/FMotalleb/go-tools/matcher/wildcard"
 	"github.com/alecthomas/assert/v2"
 )
 
-func TestGlobMatcher(t *testing.T) {
+func TestWildcardMatcher(t *testing.T) {
 	tests := []models.MatchTestCase{
 		// Basic literal matching
 		{Pattern: "example.com", Input: "example.com", Matches: true},
@@ -52,14 +52,14 @@ func TestGlobMatcher(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Pattern+"_"+test.Input, func(t *testing.T) {
-			matcher, err := glob.Compile(test.Pattern)
+			matcher, err := wildcard.Compile(test.Pattern)
 			assert.NoError(t, err, "Error compiling pattern")
 			assert.Equal(t, test.Matches, matcher.Match(test.Input))
 		})
 	}
 }
 
-func TestGlobMatcherCompileError(t *testing.T) {
+func TestWildcardMatcherCompileError(t *testing.T) {
 	// Test invalid patterns
 	invalidPatterns := []string{
 		"{unclosed",
@@ -68,7 +68,7 @@ func TestGlobMatcherCompileError(t *testing.T) {
 
 	for _, pattern := range invalidPatterns {
 		t.Run(pattern, func(t *testing.T) {
-			_, err := glob.Compile(pattern)
+			_, err := wildcard.Compile(pattern)
 			assert.Error(t, err, "Expected error for invalid pattern")
 		})
 	}
@@ -88,7 +88,7 @@ func BenchmarkCompile(b *testing.B) {
 		b.Run(pattern, func(b *testing.B) {
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
-				_, err := glob.Compile(pattern)
+				_, err := wildcard.Compile(pattern)
 				if err != nil {
 					b.Fatal(err)
 				}
@@ -155,7 +155,7 @@ func BenchmarkMatch(b *testing.B) {
 	}
 
 	for _, bm := range benchmarks {
-		matcher := glob.MustCompile(bm.pattern)
+		matcher := wildcard.MustCompile(bm.pattern)
 
 		for _, input := range bm.inputs {
 			name := fmt.Sprintf("%s/%s", bm.name, input)
@@ -173,7 +173,7 @@ func BenchmarkMatch(b *testing.B) {
 
 // Benchmark to verify zero allocations
 func BenchmarkMatchZeroAlloc(b *testing.B) {
-	matcher := glob.MustCompile("*.api-??.{example.com,test.net}")
+	matcher := wildcard.MustCompile("*.api-??.{example.com,test.net}")
 	input := "subdomain.api-01.example.com"
 
 	b.ReportAllocs()
@@ -191,7 +191,7 @@ func BenchmarkMatchZeroAlloc(b *testing.B) {
 // Benchmark different input lengths
 func BenchmarkMatchInputLength(b *testing.B) {
 	pattern := "*.example.com"
-	matcher := glob.MustCompile(pattern)
+	matcher := wildcard.MustCompile(pattern)
 
 	inputs := []string{
 		"a.example.com",                             // 13 bytes
@@ -238,7 +238,7 @@ func BenchmarkMatchWorstCase(b *testing.B) {
 	}
 
 	for _, bm := range benchmarks {
-		matcher := glob.MustCompile(bm.pattern)
+		matcher := wildcard.MustCompile(bm.pattern)
 
 		b.Run(bm.name, func(b *testing.B) {
 			b.ReportAllocs()
@@ -253,7 +253,7 @@ func BenchmarkMatchWorstCase(b *testing.B) {
 
 // Parallel benchmark
 func BenchmarkMatchParallel(b *testing.B) {
-	matcher := glob.MustCompile("*.api-??.example.com")
+	matcher := wildcard.MustCompile("*.api-??.example.com")
 	inputs := []string{
 		"subdomain.api-01.example.com",
 		"subdomain.api-99.example.com",

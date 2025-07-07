@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/FMotalleb/go-tools/matcher/glob"
 	"github.com/FMotalleb/go-tools/matcher/regexp"
+	"github.com/FMotalleb/go-tools/matcher/wildcard"
 )
 
 type Matcher struct {
@@ -24,10 +24,10 @@ func (m *Matcher) Decode(from, _ reflect.Type, val interface{}) (any, error) {
 		ty, pat = fromStr(val)
 	}
 	switch ty {
-	case "glob":
+	case "wildcard":
 		var err error
 		var mat matcher
-		if mat, err = glob.Compile(pat); err != nil {
+		if mat, err = wildcard.Compile(pat); err != nil {
 			return nil, err
 		}
 		m.matcher = mat
@@ -51,7 +51,7 @@ func fromStr(val interface{}) (string, string) {
 	split := strings.Split(str, ":")
 	switch len(split) {
 	case 1:
-		ty = "glob"
+		ty = "wildcard"
 		pat = str
 	default:
 		ty = split[0]

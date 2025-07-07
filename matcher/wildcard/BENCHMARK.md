@@ -1,4 +1,4 @@
-# Benchmark Results for Glob Package
+# Benchmark Results for wildcard Package
 
 ## Bench Command
 
@@ -8,7 +8,7 @@ go test -bench=. -benchtime 100000000x -benchmem
 
 ## Test Data
 
-* Benchmark tests were conducted on various patterns and matching scenarios for glob matching.
+* Benchmark tests were conducted on various patterns and matching scenarios for wildcard matching.
 
 ---
 
@@ -17,7 +17,7 @@ go test -bench=. -benchtime 100000000x -benchmem
 * **OS:** linux  
 * **Architecture:** amd64  
 * **CPU:** Intel(R) Core(TM) i5-6500 CPU @ 3.20GHz  
-* **Package:** github.com/FMotalleb/go-tools/matcher/glob  
+* **Package:** github.com/FMotalleb/go-tools/matcher/wildcard  
 
 ---
 
@@ -86,11 +86,11 @@ go test -bench=. -benchtime 100000000x -benchmem
 
 ## Summary
 
-* **Compile Benchmarks**: Show incremental cost for different glob patterns. Simple patterns like `example.com` are compiled very quickly, while more complex patterns like brace expansions and multiple stars incur higher costs.  
+* **Compile Benchmarks**: Show incremental cost for different wildcard patterns. Simple patterns like `example.com` are compiled very quickly, while more complex patterns like brace expansions and multiple stars incur higher costs.  
 * **Match Benchmarks**: All cases show zero allocations, demonstrating excellent efficiency.  
   * Matching literals is the fastest, with throughput exceeding 2 GB/s in some cases.  
   * Patterns with wildcards (`*` and `?`) or brace expansions are slower but remain highly performant.  
 * **Worst-Case Scenarios**: Even in edge cases (e.g., long non-matching patterns or deep brace expansions), the performance remains within acceptable limits.  
 * **Parallel Matching**: Minimal overhead for parallel execution.
 
-This package demonstrates high performance and zero-alloc efficiency, making it well-suited for real-time glob matching tasks.  
+This package demonstrates high performance and zero-alloc efficiency, making it well-suited for real-time wildcard matching tasks.  

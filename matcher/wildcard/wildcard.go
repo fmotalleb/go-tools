@@ -1,4 +1,4 @@
-package glob
+package wildcard
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"unsafe"
 )
 
-// Matcher represents a compiled glob pattern.
+// Matcher represents a compiled wildcard pattern.
 type Matcher struct {
 	pattern  string
 	segments []segment
@@ -28,11 +28,11 @@ type segment struct {
 }
 
 var (
-	ErrInvalidPattern = errors.New("invalid glob pattern")
+	ErrInvalidPattern = errors.New("invalid wildcard pattern")
 	ErrUnmatchedBrace = errors.New("unmatched brace in pattern")
 )
 
-// Compile compiles a glob pattern into a Matcher.
+// Compile compiles a wildcard pattern into a Matcher.
 func Compile(pattern string) (*Matcher, error) {
 	m := &Matcher{pattern: pattern}
 	if err := m.compile(); err != nil {
@@ -41,7 +41,7 @@ func Compile(pattern string) (*Matcher, error) {
 	return m, nil
 }
 
-// MustCompile compiles a glob pattern and panics on error.
+// MustCompile compiles a wildcard pattern and panics on error.
 func MustCompile(pattern string) *Matcher {
 	m, err := Compile(pattern)
 	if err != nil {
@@ -106,7 +106,7 @@ func (m *Matcher) compile() error {
 			}
 
 			// Parse brace expansion
-			expansions := globParseBraceExpansion(m.pattern[i+1 : braceEnd-1])
+			expansions := wildcardParseBraceExpansion(m.pattern[i+1 : braceEnd-1])
 			segments = append(segments, segment{
 				typ:        segmentBraceExpansion,
 				expansions: expansions,
@@ -130,7 +130,7 @@ func (m *Matcher) compile() error {
 	return nil
 }
 
-func globParseBraceExpansion(content string) []string {
+func wildcardParseBraceExpansion(content string) []string {
 	var result []string
 	var current strings.Builder
 
@@ -177,7 +177,7 @@ func (m *Matcher) match(input string, inputPos, segmentPos int) bool {
 
 	switch segment.typ {
 	case segmentLiteral:
-		if !globMatchLiteral(input, inputPos, segment.value) {
+		if !wildcardMatchLiteral(input, inputPos, segment.value) {
 			return false
 		}
 		return m.match(input, inputPos+len(segment.value), segmentPos+1)
@@ -200,7 +200,7 @@ func (m *Matcher) match(input string, inputPos, segmentPos int) bool {
 	case segmentBraceExpansion:
 		// Try each expansion
 		for _, expansion := range segment.expansions {
-			if globMatchLiteral(input, inputPos, expansion) {
+			if wildcardMatchLiteral(input, inputPos, expansion) {
 				if m.match(input, inputPos+len(expansion), segmentPos+1) {
 					return true
 				}
@@ -213,8 +213,8 @@ func (m *Matcher) match(input string, inputPos, segmentPos int) bool {
 	}
 }
 
-// globMatchLiteral performs zero-allocation string prefix matching.
-func globMatchLiteral(input string, pos int, literal string) bool {
+// wildcardMatchLiteral performs zero-allocation string prefix matching.
+func wildcardMatchLiteral(input string, pos int, literal string) bool {
 	if pos+len(literal) > len(input) {
 		return false
 	}
