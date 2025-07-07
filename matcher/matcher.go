@@ -18,7 +18,7 @@ type matcher interface {
 	Match(string) bool
 }
 
-func (m *Matcher) Decode(from, _ reflect.Type, val interface{}) (any, error) {
+func (m *Matcher) Decode(from reflect.Type, val interface{}) (any, error) {
 	var ty, pat string
 	switch from.Kind() {
 	case reflect.String:
