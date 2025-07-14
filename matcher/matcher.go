@@ -16,6 +16,7 @@ type Matcher struct {
 
 type matcher interface {
 	Match(string) bool
+	MarshalText() ([]byte, error)
 }
 
 func (m *Matcher) Decode(from reflect.Type, val interface{}) (any, error) {

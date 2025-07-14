@@ -1,6 +1,7 @@
 package glob
 
 import (
+	"fmt"
 	"path/filepath"
 )
 
@@ -26,4 +27,8 @@ func Compile(exp string) (*Matcher, error) {
 
 func MustCompile(exp string) *Matcher {
 	return &Matcher{exp}
+}
+
+func (m *Matcher) MarshalText() ([]byte, error) {
+	return []byte(fmt.Sprintf("glob:%s", m.pattern)), nil
 }
