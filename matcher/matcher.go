@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/FMotalleb/go-tools/matcher/glob"
 	"github.com/FMotalleb/go-tools/matcher/regexp"
 	"github.com/FMotalleb/go-tools/matcher/wildcard"
 )
@@ -17,17 +18,25 @@ type matcher interface {
 	Match(string) bool
 }
 
-func (m *Matcher) Decode(from, _ reflect.Type, val interface{}) (any, error) {
+func (m *Matcher) Decode(from reflect.Type, val interface{}) (any, error) {
 	var ty, pat string
 	switch from.Kind() {
 	case reflect.String:
 		ty, pat = fromStr(val)
 	}
 	switch ty {
-	case "wildcard":
+	case "wildcard", "domain", "wc":
 		var err error
 		var mat matcher
 		if mat, err = wildcard.Compile(pat); err != nil {
+			return nil, err
+		}
+		m.matcher = mat
+		return m, nil
+	case "glob", "file", "files":
+		var err error
+		var mat matcher
+		if mat, err = glob.Compile(pat); err != nil {
 			return nil, err
 		}
 		m.matcher = mat
