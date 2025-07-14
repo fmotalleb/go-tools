@@ -1,6 +1,9 @@
 package regexp
 
-import "regexp"
+import (
+	"fmt"
+	"regexp"
+)
 
 type Matcher struct {
 	*regexp.Regexp
@@ -21,4 +24,8 @@ func Compile(exp string) (*Matcher, error) {
 func MustCompile(exp string) *Matcher {
 	m := regexp.MustCompile(exp)
 	return &Matcher{m}
+}
+
+func (m *Matcher) MarshalText() ([]byte, error) {
+	return []byte(fmt.Sprintf("regex:%s", m.String())), nil
 }
