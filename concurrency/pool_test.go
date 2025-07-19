@@ -4,8 +4,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/FMotalleb/go-tools/concurrency"
 	"github.com/alecthomas/assert/v2"
+	"github.com/fmotalleb/go-tools/concurrency"
 )
 
 func TestNewPool(t *testing.T) {

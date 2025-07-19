@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/FMotalleb/go-tools/clone"
+	"github.com/fmotalleb/go-tools/clone"
 )
 
 type Nested struct {

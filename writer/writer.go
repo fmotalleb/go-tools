@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/FMotalleb/go-tools/log"
+	"github.com/fmotalleb/go-tools/log"
 )
 
 type Writer struct {

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/FMotalleb/go-tools/decoder/hooks"
+	"github.com/fmotalleb/go-tools/decoder/hooks"
 	"github.com/go-viper/mapstructure/v2"
 )
 

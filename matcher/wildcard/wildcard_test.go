@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/FMotalleb/go-tools/internal/models"
-	"github.com/FMotalleb/go-tools/matcher/wildcard"
 	"github.com/alecthomas/assert/v2"
+	"github.com/fmotalleb/go-tools/internal/models"
+	"github.com/fmotalleb/go-tools/matcher/wildcard"
 )
 
 func TestWildcardMatcher(t *testing.T) {

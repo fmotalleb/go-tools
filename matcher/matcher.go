@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/FMotalleb/go-tools/matcher/glob"
-	"github.com/FMotalleb/go-tools/matcher/regexp"
-	"github.com/FMotalleb/go-tools/matcher/wildcard"
+	"github.com/fmotalleb/go-tools/matcher/glob"
+	"github.com/fmotalleb/go-tools/matcher/regexp"
+	"github.com/fmotalleb/go-tools/matcher/wildcard"
 )
 
 type Matcher struct {

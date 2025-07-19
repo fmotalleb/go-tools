@@ -3,7 +3,7 @@ package hooks
 import (
 	"reflect"
 
-	"github.com/FMotalleb/go-tools/env"
+	"github.com/fmotalleb/go-tools/env"
 	"github.com/go-viper/mapstructure/v2"
 )
 
