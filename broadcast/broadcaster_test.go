@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/FMotalleb/go-tools/broadcast"
-	"github.com/FMotalleb/go-tools/log"
 	"github.com/alecthomas/assert/v2"
+	"github.com/fmotalleb/go-tools/broadcast"
+	"github.com/fmotalleb/go-tools/log"
 	"go.uber.org/zap"
 )
 

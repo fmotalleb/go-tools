@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/FMotalleb/go-tools/env"
+	"github.com/fmotalleb/go-tools/env"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

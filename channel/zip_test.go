@@ -4,8 +4,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/FMotalleb/go-tools/channel"
 	"github.com/alecthomas/assert/v2"
+	"github.com/fmotalleb/go-tools/channel"
 )
 
 func TestZipChannel(t *testing.T) {

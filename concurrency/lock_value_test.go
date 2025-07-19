@@ -3,8 +3,8 @@ package concurrency_test
 import (
 	"testing"
 
-	"github.com/FMotalleb/go-tools/concurrency"
 	"github.com/alecthomas/assert/v2"
+	"github.com/fmotalleb/go-tools/concurrency"
 )
 
 func TestLockedValue(t *testing.T) {

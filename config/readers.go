@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/FMotalleb/go-tools/log"
+	"github.com/fmotalleb/go-tools/log"
 	"go.uber.org/zap"
 )
 

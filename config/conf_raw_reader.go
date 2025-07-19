@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 
 	"dario.cat/mergo"
-	"github.com/FMotalleb/go-tools/log"
+	"github.com/fmotalleb/go-tools/log"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
