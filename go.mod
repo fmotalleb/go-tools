@@ -1,4 +1,4 @@
-module github.com/FMotalleb/go-tools
+module github.com/fmotalleb/go-tools
 
 go 1.24.4
 

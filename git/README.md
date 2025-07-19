@@ -2,13 +2,13 @@
 
 ## ✅ Features
 
-* Access your applications git metadata using buildtime variables.
-* Parses and freezes injected values at init-time.
+- Access your applications git metadata using buildtime variables.
+- Parses and freezes injected values at init-time.
 
 ## 📦 Import
 
 ```go
-import "github.com/FMotalleb/go-tools/git"
+import "github.com/fmotalleb/go-tools/git"
 ```
 
 ## 🛠️ Example GoReleaser Configuration
@@ -27,10 +27,10 @@ builds:
     ldflags:
       - "-s"
       - "-w"
-      - "-X github.com/FMotalleb/go-tools/git.Version={{.Version}}"
-      - "-X github.com/FMotalleb/go-tools/git.Commit={{.ShortCommit}}"
-      - "-X github.com/FMotalleb/go-tools/git.Date={{.Date}}"
-      - "-X github.com/FMotalleb/go-tools/git.Branch={{.Branch}}"
+      - "-X github.com/fmotalleb/go-tools/git.Version={{.Version}}"
+      - "-X github.com/fmotalleb/go-tools/git.Commit={{.ShortCommit}}"
+      - "-X github.com/fmotalleb/go-tools/git.Date={{.Date}}"
+      - "-X github.com/fmotalleb/go-tools/git.Branch={{.Branch}}"
 ```
 
 ## 🛠️ Example Go Build Script
@@ -39,7 +39,7 @@ builds:
 #!/usr/bin/env bash
 set -euo pipefail
 
-PACKAGE="github.com/FMotalleb/go-tools/git"
+PACKAGE="github.com/fmotalleb/go-tools/git"
 
 VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0-dev")
 COMMIT=$(git rev-parse --short HEAD)

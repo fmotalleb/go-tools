@@ -15,7 +15,7 @@ A fluent, builder-pattern wrapper for Uber's Zap logger with context integration
 
 ```bash
 go get -u go.uber.org/zap
-go get -u github.com/FMotalleb/log
+go get -u github.com/fmotalleb/log
 ```
 
 ## Quick Start
@@ -27,7 +27,7 @@ package main
 
 import (
     "context"
-    "github.com/FMotalleb/log"
+    "github.com/fmotalleb/log"
 )
 
 func main() {
@@ -76,51 +76,51 @@ prodLogger := log.NewBuilder().
 
 ### Core Configuration
 
-| Method | Description | Default |
-|--------|-------------|---------|
-| `Level(string)` | Set log level ("debug", "info", "warn", "error") | "info" |
-| `Development(bool)` | Enable development mode (console + colors) | false |
-| `ServiceName(string)` | Add service name to all logs | - |
-| `Version(string)` | Add version to all logs | - |
-| `Environment(string)` | Add environment to all logs | - |
+| Method                | Description                                      | Default |
+| --------------------- | ------------------------------------------------ | ------- |
+| `Level(string)`       | Set log level ("debug", "info", "warn", "error") | "info"  |
+| `Development(bool)`   | Enable development mode (console + colors)       | false   |
+| `ServiceName(string)` | Add service name to all logs                     | -       |
+| `Version(string)`     | Add version to all logs                          | -       |
+| `Environment(string)` | Add environment to all logs                      | -       |
 
 ### Encoding Options
 
-| Method | Description |
-|--------|-------------|
-| `JSONEncoding()` | Use JSON format (production) |
+| Method              | Description                      |
+| ------------------- | -------------------------------- |
+| `JSONEncoding()`    | Use JSON format (production)     |
 | `ConsoleEncoding()` | Use console format (development) |
-| `ColorLevel()` | Enable colored log levels |
-| `LowercaseLevel()` | Use lowercase level names |
-| `CapitalLevel()` | Use capital level names |
+| `ColorLevel()`      | Enable colored log levels        |
+| `LowercaseLevel()`  | Use lowercase level names        |
+| `CapitalLevel()`    | Use capital level names          |
 
 ### Time Formatting
 
-| Method | Description |
-|--------|-------------|
-| `ISO8601Time()` | ISO8601 timestamp format |
-| `RFC3339Time()` | RFC3339 timestamp format |
-| `EpochTime()` | Unix epoch timestamp |
-| `CustomTime(layout)` | Custom time format |
+| Method               | Description              |
+| -------------------- | ------------------------ |
+| `ISO8601Time()`      | ISO8601 timestamp format |
+| `RFC3339Time()`      | RFC3339 timestamp format |
+| `EpochTime()`        | Unix epoch timestamp     |
+| `CustomTime(layout)` | Custom time format       |
 
 ### Output Configuration
 
-| Method | Description |
-|--------|-------------|
-| `OutputPaths(paths...)` | Set output destinations |
-| `AddOutputPath(path)` | Add output destination |
+| Method                       | Description                   |
+| ---------------------------- | ----------------------------- |
+| `OutputPaths(paths...)`      | Set output destinations       |
+| `AddOutputPath(path)`        | Add output destination        |
 | `ErrorOutputPaths(paths...)` | Set error output destinations |
-| `DisableCaller(bool)` | Disable caller information |
-| `DisableStacktrace(bool)` | Disable stack traces |
+| `DisableCaller(bool)`        | Disable caller information    |
+| `DisableStacktrace(bool)`    | Disable stack traces          |
 
 ### Advanced Options
 
-| Method | Description |
-|--------|-------------|
-| `Sampling(initial, thereafter)` | Configure log sampling |
-| `NoSampling()` | Disable log sampling |
-| `AddHook(func)` | Add custom hook function |
-| `Name(string)` | Set logger name |
+| Method                          | Description              |
+| ------------------------------- | ------------------------ |
+| `Sampling(initial, thereafter)` | Configure log sampling   |
+| `NoSampling()`                  | Disable log sampling     |
+| `AddHook(func)`                 | Add custom hook function |
+| `Name(string)`                  | Set logger name          |
 
 ## Context Integration
 
@@ -151,12 +151,12 @@ ctx = log.WithNewLoggerForced(ctx,
 ```go
 func processRequest(ctx context.Context, userID string) {
     logger := log.FromContext(ctx)
-    
+
     logger.Info("Processing request",
         zap.String("user_id", userID),
         zap.String("action", "process"),
     )
-    
+
     // Logger automatically includes service name, version, etc.
     // from the builder configuration
 }
@@ -179,13 +179,13 @@ func httpHandler(w http.ResponseWriter, r *http.Request) {
                 AddInitialField("path", r.URL.Path)
         },
     )
-    
+
     logger := log.FromContext(ctx)
     logger.Info("Request started")
-    
+
     // Process request with context
     processRequest(ctx)
-    
+
     logger.Info("Request completed")
 }
 ```
@@ -280,19 +280,19 @@ logger := log.NewBuilder().
 - **Type Safety**: Boolean and integer values are properly parsed with fallbacks
 - **Comma-Separated Lists**: Output paths support multiple destinations via comma separation
 
-| Variable | Type | Description | Default | Valid Values |
-|----------|------|-------------|---------|--------------|
-| `ZAPLOG_LEVEL` | string | Logging level | "info" | "debug", "info", "warn", "error", "dpanic", "panic", "fatal" |
-| `ZAPLOG_DEVELOPMENT` | bool | Development mode (console + colors) | false | "true", "false", "1", "0" |
-| `ZAPLOG_TIME_FORMAT` | string | Timestamp format | "iso8601" | "iso8601", "rfc3339", "epoch", custom layout |
-| `ZAPLOG_LEVEL_FORMAT` | string | Log level format | "lowercase" | "lowercase", "capital", "color" |
-| `ZAPLOG_OUTPUT_PATHS` | []string | Output destinations (comma-separated) | "stdout" | "stdout", "/path/to/file", "syslog" |
-| `ZAPLOG_ERROR_PATHS` | []string | Error output destinations (comma-separated) | "stderr" | "stderr", "/path/to/error.log" |
-| `ZAPLOG_DISABLE_CALLER` | bool | Disable caller information | false | "true", "false", "1", "0" |
-| `ZAPLOG_DISABLE_STACKTRACE` | bool | Disable stack traces | false | "true", "false", "1", "0" |
-| `ZAPLOG_ENABLE_SAMPLING` | bool | Enable log sampling | false | "true", "false", "1", "0" |
-| `ZAPLOG_SAMPLING_INITIAL` | int | Initial sampling rate | 100 | Any positive integer |
-| `ZAPLOG_SAMPLING_THEREAFTER` | int | Subsequent sampling rate | 100 | Any positive integer |
+| Variable                     | Type     | Description                                 | Default     | Valid Values                                                 |
+| ---------------------------- | -------- | ------------------------------------------- | ----------- | ------------------------------------------------------------ |
+| `ZAPLOG_LEVEL`               | string   | Logging level                               | "info"      | "debug", "info", "warn", "error", "dpanic", "panic", "fatal" |
+| `ZAPLOG_DEVELOPMENT`         | bool     | Development mode (console + colors)         | false       | "true", "false", "1", "0"                                    |
+| `ZAPLOG_TIME_FORMAT`         | string   | Timestamp format                            | "iso8601"   | "iso8601", "rfc3339", "epoch", custom layout                 |
+| `ZAPLOG_LEVEL_FORMAT`        | string   | Log level format                            | "lowercase" | "lowercase", "capital", "color"                              |
+| `ZAPLOG_OUTPUT_PATHS`        | []string | Output destinations (comma-separated)       | "stdout"    | "stdout", "/path/to/file", "syslog"                          |
+| `ZAPLOG_ERROR_PATHS`         | []string | Error output destinations (comma-separated) | "stderr"    | "stderr", "/path/to/error.log"                               |
+| `ZAPLOG_DISABLE_CALLER`      | bool     | Disable caller information                  | false       | "true", "false", "1", "0"                                    |
+| `ZAPLOG_DISABLE_STACKTRACE`  | bool     | Disable stack traces                        | false       | "true", "false", "1", "0"                                    |
+| `ZAPLOG_ENABLE_SAMPLING`     | bool     | Enable log sampling                         | false       | "true", "false", "1", "0"                                    |
+| `ZAPLOG_SAMPLING_INITIAL`    | int      | Initial sampling rate                       | 100         | Any positive integer                                         |
+| `ZAPLOG_SAMPLING_THEREAFTER` | int      | Subsequent sampling rate                    | 100         | Any positive integer                                         |
 
 ### Configuration Examples
 
@@ -362,15 +362,15 @@ func main() {
     os.Setenv("ZAPLOG_TIME_FORMAT", "rfc3339")
     os.Setenv("ZAPLOG_LEVEL_FORMAT", "color")
     os.Setenv("ZAPLOG_OUTPUT_PATHS", "stdout,/tmp/app.log")
-    
+
     // Create logger from environment
     logger := log.NewBuilder().FromEnv().MustBuild()
     logger.Info("Logger configured from ZAPLOG_ environment variables")
-    
+
     // Create context with environment-configured logger
     ctx := context.Background()
     ctx = log.WithNewEnvLoggerForced(ctx)
-    
+
     log.FromContext(ctx).Debug("Debug message with environment configuration")
 }
 ```
@@ -380,7 +380,7 @@ func main() {
 #### `ZAPLOG_TIME_FORMAT`
 
 - **"iso8601"**: `2006-01-02T15:04:05.000Z0700` format
-- **"rfc3339"**: `2006-01-02T15:04:05Z07:00` format  
+- **"rfc3339"**: `2006-01-02T15:04:05Z07:00` format
 - **"epoch"**: Unix timestamp (seconds since epoch)
 - **Custom layout**: Any Go time layout string (e.g., `"2006-01-02 15:04:05"`)
 
