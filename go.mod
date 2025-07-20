@@ -11,7 +11,7 @@ tool (
 require (
 	dario.cat/mergo v1.0.2
 	github.com/alecthomas/assert/v2 v2.11.0
-	github.com/go-viper/mapstructure/v2 v2.3.0
+	github.com/go-viper/mapstructure/v2 v2.4.0
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	github.com/spf13/cast v1.9.2
 	github.com/spf13/viper v1.20.1
