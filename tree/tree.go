@@ -48,3 +48,16 @@ func (n *Node[T]) TraverseLevelOrder(act func(T)) {
 		queue = append(queue, current.children...)
 	}
 }
+
+func (n *Node[T]) Where(test func(*Node[T]) bool) *Node[T] {
+	if !test(n) {
+		return nil
+	}
+	r := NewNode(n.Data)
+	for _, ch := range n.Children() {
+		if nch := ch.Where(test); nch != nil {
+			r.children = append(r.children, nch)
+		}
+	}
+	return r
+}
