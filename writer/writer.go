@@ -50,7 +50,7 @@ func (w *Writer) Decode(from reflect.Type, val interface{}) (any, error) {
 	default:
 		return nil, errors.New("unsupported type for writer")
 	}
-	w.definition = val.(string)
+	w.definition = val
 	var ok bool
 	ty, ok = params["type"].(string)
 	if !ok {
