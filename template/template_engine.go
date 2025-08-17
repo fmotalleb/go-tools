@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"reflect"
 	"strconv"
@@ -20,7 +21,7 @@ func buildFuncMap() template.FuncMap {
 		"b64enc": func(s string) string {
 			return base64.StdEncoding.EncodeToString([]byte(s))
 		},
-		"sum": func(a int, b int) int {
+		"sum": func(a, b int) int {
 			return a + b
 		},
 		"b64dec":    b64dec,
@@ -41,6 +42,7 @@ func buildFuncMap() template.FuncMap {
 		"matches":   match,
 		"upTo":      upTo,
 		"downTo":    downTo,
+		"file":      readFile,
 	}
 
 	return result
@@ -50,6 +52,27 @@ func EvaluateTemplate(text string, vars any) (string, error) {
 	templateObj := template.New("template")
 
 	templateObj = templateObj.Funcs(buildFuncMap())
+
+	templateObj, err := templateObj.Parse(text)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse template: %w", err)
+	}
+
+	output := bytes.NewBufferString("")
+	err = templateObj.Execute(output, vars)
+	if err != nil {
+		return "", fmt.Errorf("failed to execute template using vars snapshot: %w", err)
+	}
+	return output.String(), nil
+}
+
+func EvaluateTemplateWithFuncs(text string, vars any, funcs template.FuncMap) (string, error) {
+	templateObj := template.New("template")
+	fmap := buildFuncMap()
+	for k, v := range funcs {
+		fmap[k] = v
+	}
+	templateObj = templateObj.Funcs(fmap)
 
 	templateObj, err := templateObj.Parse(text)
 	if err != nil {
@@ -155,4 +178,16 @@ func downTo(input, min interface{}) int {
 		return minimum
 	}
 	return value
+}
+
+func readFile(path string) (string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
 }
