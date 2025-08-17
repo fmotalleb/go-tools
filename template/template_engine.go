@@ -13,6 +13,8 @@ import (
 	"text/template"
 
 	"github.com/fmotalleb/go-tools/matcher"
+	"github.com/pelletier/go-toml/v2"
+	"gopkg.in/yaml.v3"
 )
 
 func buildFuncMap() template.FuncMap {
@@ -35,6 +37,10 @@ func buildFuncMap() template.FuncMap {
 		"contains":  strings.Contains,
 		"toJSON":    toJSON,
 		"fromJSON":  fromJSON,
+		"toYAML":    toYAML,
+		"fromYAML":  fromYAML,
+		"toTOML":    toTOML,
+		"fromTOML":  fromTOML,
 		"itoa":      strconv.Itoa,
 		"toInt":     toInt,
 		"atoi":      strconv.Atoi,
@@ -98,6 +104,39 @@ func toJSON(v any) string {
 func fromJSON(s string) map[string]any {
 	var result map[string]any
 	err := json.Unmarshal([]byte(s), &result)
+	if err != nil {
+		panic(err)
+	}
+	return result
+}
+
+func toYAML(v any) string {
+	data, err := yaml.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return string(data)
+}
+
+func fromYAML(s string) map[string]any {
+	var result map[string]any
+	err := yaml.Unmarshal([]byte(s), &result)
+	if err != nil {
+		panic(err)
+	}
+	return result
+}
+func toTOML(v any) string {
+	data, err := toml.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return string(data)
+}
+
+func fromTOML(s string) map[string]any {
+	var result map[string]any
+	err := toml.Unmarshal([]byte(s), &result)
 	if err != nil {
 		panic(err)
 	}
@@ -191,3 +230,5 @@ func readFile(path string) (string, error) {
 	}
 	return string(data), nil
 }
+
+func from()
