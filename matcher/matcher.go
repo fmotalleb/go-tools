@@ -52,7 +52,7 @@ func (m *Matcher) Decode(from reflect.Type, val interface{}) (any, error) {
 		return m, nil
 	}
 
-	return errors.New("failed to find matcher variant"), nil
+	return nil, errors.New("failed to find matcher variant")
 }
 
 func fromStr(val interface{}) (string, string) {
