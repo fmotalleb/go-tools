@@ -33,7 +33,7 @@ func (n *Node[T]) AddChildNode(child *Node[T]) {
 	n.children = append(n.children, child)
 }
 
-// Traverse nodes
+// Traverse nodes the safe way (using data)
 // first executes on current node then traverses deeper into tree
 // its an standard pre-order traversal
 func (n *Node[T]) Traverse(act func(T)) {
@@ -45,6 +45,19 @@ func (n *Node[T]) Traverse(act func(T)) {
 	act(data)
 	for _, child := range children {
 		child.Traverse(act)
+	}
+}
+
+// Traverse nodes
+// first executes on current node then traverses deeper into tree
+// its an standard pre-order traversal
+func (n *Node[T]) TraverseNode(act func(*Node[T])) {
+	n.mu.RLock()
+	children := append([]*Node[T](nil), n.children...) // Copy slice
+	n.mu.RUnlock()
+	act(n)
+	for _, child := range children {
+		child.TraverseNode(act)
 	}
 }
 
