@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+
+	"github.com/fmotalleb/go-tools/matcher"
 )
 
 func buildFuncMap() template.FuncMap {
@@ -36,6 +38,9 @@ func buildFuncMap() template.FuncMap {
 		"toInt":     toInt,
 		"atoi":      strconv.Atoi,
 		"atob":      atob,
+		"matches":   match,
+		"upTo":      upTo,
+		"downTo":    downTo,
 	}
 
 	return result
@@ -122,4 +127,32 @@ func toInt(v interface{}) int {
 	default:
 		panic(fmt.Errorf("unsupported type: %T", val))
 	}
+}
+
+func match(input, s string) (bool, error) {
+	m := new(matcher.Matcher)
+	var err error
+	_, err = m.Decode(reflect.TypeOf(s), s)
+	if err != nil {
+		return false, err
+	}
+	return m.Match(input), nil
+}
+
+func upTo(input, max interface{}) int {
+	value := toInt(input)
+	maximum := toInt(max)
+	if value > maximum {
+		return maximum
+	}
+	return value
+}
+
+func downTo(input, min interface{}) int {
+	value := toInt(input)
+	minimum := toInt(min)
+	if value < minimum {
+		return minimum
+	}
+	return value
 }
