@@ -1,8 +1,10 @@
 package git
 
 import (
-	"fmt"
+	"runtime"
 	"time"
+
+	"github.com/fmotalleb/go-tools/template"
 )
 
 var (
@@ -47,12 +49,20 @@ func GetBranch() string {
 }
 
 func String() string {
-	out := fmt.Sprintf(
-		"%s (%s/%s) %s ago",
-		version,
-		branch,
-		commit,
-		time.Since(date).Round(time.Minute),
-	)
+	data := map[string]any{
+		"ver":    version,
+		"branch": branch,
+		"hash":   commit,
+		"age":    time.Since(date).Round(time.Minute),
+		"go": map[string]any{
+			"ver":  runtime.Version(),
+			"OS":   runtime.GOOS,
+			"arch": runtime.GOARCH,
+		},
+	}
+	out, err := template.EvaluateTemplate("{{ .ver }} ({{ .branch }}/{{ .hash }}) {{ .age }} ago built using {{ .go.ver }} for {{ .go.OS }} {{ .go.arch }}", data)
+	if err != nil {
+		panic(err)
+	}
 	return out
 }
