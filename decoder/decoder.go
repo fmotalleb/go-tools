@@ -27,7 +27,7 @@ func GetHooks() []mapstructure.DecodeHookFunc {
 	}
 }
 
-func Build(item any) (*mapstructure.Decoder, error) {
+func Build[T any](item T) (*mapstructure.Decoder, error) {
 	allHooks := GetHooks()
 	allHooks = append(allHooks, hooks.GetExtraHooks()...)
 
@@ -61,5 +61,23 @@ func Decode[T any](dst *T, src any) error {
 			err,
 		)
 	}
+	return nil
+}
+
+func DecodeWithTemplate[T any](dst *T, src any, data any) error {
+	decoder, err := Build(dst)
+	if err != nil {
+		return errors.Join(
+			errors.New("failed to create decoder"),
+			err,
+		)
+	}
+	if err := decoder.Decode(src); err != nil {
+		return errors.Join(
+			errors.New("failed to decode"),
+			err,
+		)
+	}
+
 	return nil
 }
