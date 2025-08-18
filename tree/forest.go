@@ -1,6 +1,9 @@
 package tree
 
-import "fmt"
+import (
+	"fmt"
+	"slices"
+)
 
 type Forest[T any] = []*Node[T]
 
@@ -146,5 +149,6 @@ func ShakeForest[T any](f Forest[T], test func(*Node[T]) bool) Forest[T] {
 			res = append(res, nt)
 		}
 	}
+	res = slices.Clip(res)
 	return res
 }
