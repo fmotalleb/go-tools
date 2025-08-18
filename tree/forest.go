@@ -2,6 +2,8 @@ package tree
 
 import "fmt"
 
+type Forest[T any] = []*Node[T]
+
 type DependencyNode[T comparable] interface {
 	Name() T
 	Dependents() []T
@@ -13,7 +15,7 @@ type DependencyNode[T comparable] interface {
 // Creates new tree if a node has no dependent
 // A single node may appear on other trees as well, thus output node count
 // may be far more than what input was
-func NewForest[R comparable, T DependencyNode[R]](nodes []T) ([]*Node[T], error) {
+func NewForest[R comparable, T DependencyNode[R]](nodes []T) (Forest[T], error) {
 	nodeMap := make(map[R]T)
 	for _, node := range nodes {
 		nodeMap[node.Name()] = node
@@ -132,4 +134,17 @@ func NewForest[R comparable, T DependencyNode[R]](nodes []T) ([]*Node[T], error)
 	}
 
 	return roots, nil
+}
+
+// ShakeForest calls `Shake` on each tree of the forest
+//   - Performs way worse than `Shake` because of possibility of entangled branches on multiple trees.
+func ShakeForest[T any](f Forest[T], test func(*Node[T]) bool) Forest[T] {
+	res := make(Forest[T], 0, len(f))
+	for _, t := range f {
+		nt, ok := t.Shake(test)
+		if ok {
+			res = append(res, nt)
+		}
+	}
+	return res
 }
