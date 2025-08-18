@@ -1,7 +1,9 @@
 package git
 
 import (
+	"fmt"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/fmotalleb/go-tools/template"
@@ -53,16 +55,51 @@ func String() string {
 		"ver":    version,
 		"branch": branch,
 		"hash":   commit,
-		"age":    time.Since(date).Round(time.Minute),
+		"age":    humanDuration(time.Since(date)),
+		"date":   date.Format(time.RFC3339),
 		"go": map[string]any{
 			"ver":  runtime.Version(),
-			"OS":   runtime.GOOS,
+			"os":   runtime.GOOS,
 			"arch": runtime.GOARCH,
 		},
 	}
-	out, err := template.EvaluateTemplate("{{ .ver }} ({{ .branch }}/{{ .hash }}) {{ .age }} ago built using {{ .go.ver }} for {{ .go.OS }} {{ .go.arch }}", data)
+	tmpl := new(strings.Builder)
+	tmpl.WriteString("{{ .ver }}")
+	tmpl.WriteString(" ")
+	tmpl.WriteString("({{ .branch }}/{{ .hash }})")
+	tmpl.WriteString(" ")
+	tmpl.WriteString("built {{ .age }} ago ({{ .date }})")
+	tmpl.WriteString(" ")
+	tmpl.WriteString("using {{ .go.ver }} for {{ .go.os }}/{{ .go.arch }}")
+	out, err := template.EvaluateTemplate(tmpl.String(), data)
 	if err != nil {
 		panic(err)
 	}
 	return out
+}
+
+func humanDuration(d time.Duration) string {
+	if d < time.Minute {
+		return "just now"
+	}
+	parts := []string{}
+	if days := d / (24 * time.Hour); days > 0 {
+		parts = append(parts, fmt.Sprintf("%d day%s", days, plural(days)))
+		d %= 24 * time.Hour
+	}
+	if hours := d / time.Hour; hours > 0 {
+		parts = append(parts, fmt.Sprintf("%d hour%s", hours, plural(hours)))
+		d %= time.Hour
+	}
+	if minutes := d / time.Minute; minutes > 0 {
+		parts = append(parts, fmt.Sprintf("%d min%s", minutes, plural(minutes)))
+	}
+	return strings.Join(parts, ", ")
+}
+
+func plural(n time.Duration) string {
+	if n == 1 {
+		return ""
+	}
+	return "s"
 }
