@@ -10,10 +10,11 @@ import (
 )
 
 var (
-	Version = "v0.0.0-dev"
-	Commit  = "--"
-	Date    = "2025-06-21T15:24:40Z"
-	Branch  = "dev-branch"
+	Version = ""
+	Commit  = ""
+	Date    = ""
+	Branch  = ""
+	// ---
 	version = ""
 	commit  = ""
 	date    time.Time
@@ -64,13 +65,25 @@ func String() string {
 		},
 	}
 	tmpl := new(strings.Builder)
-	tmpl.WriteString("{{ .ver }}")
-	tmpl.WriteString(" ")
-	tmpl.WriteString("({{ .branch }}/{{ .hash }})")
-	tmpl.WriteString(" ")
-	tmpl.WriteString("built {{ .age }} ago ({{ .date }})")
-	tmpl.WriteString(" ")
-	tmpl.WriteString("using {{ .go.ver }} for {{ .go.os }}/{{ .go.arch }}")
+	if version != "" {
+		tmpl.WriteString("{{ .ver }}")
+		tmpl.WriteString(" ")
+	} else {
+		tmpl.WriteString("`go build-time args missing` ")
+	}
+	if branch != "" {
+		tmpl.WriteString("({{ .branch }}/{{ .hash }})")
+		tmpl.WriteString(" ")
+	}
+
+	// somehow the default year is 1 and i believe nobody will build go apps before year 2
+	// for those with time machine: dude why are u using this module?
+	if time.Date(2, 0, 0, 0, 0, 0, 0, time.UTC).Before(date) {
+		tmpl.WriteString("built {{ .age }} ago ({{ .date }})")
+		tmpl.WriteString(" using")
+
+	}
+	tmpl.WriteString("{{ .go.ver }} for {{ .go.os }}/{{ .go.arch }}")
 	out, err := template.EvaluateTemplate(tmpl.String(), data)
 	if err != nil {
 		panic(err)
