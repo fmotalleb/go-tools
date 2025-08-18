@@ -230,5 +230,3 @@ func readFile(path string) (string, error) {
 	}
 	return string(data), nil
 }
-
-func from()
