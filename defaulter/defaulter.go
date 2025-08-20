@@ -1,0 +1,70 @@
+package defaulter
+
+import (
+	"encoding/json"
+	"fmt"
+	"reflect"
+)
+
+func ApplyDefaults(v any, data any) {
+	visited := make(map[uintptr]bool)
+	findTemplateFieldsRecursive(data, reflect.ValueOf(v), visited, "")
+}
+
+func findTemplateFieldsRecursive(data any, val reflect.Value, visited map[uintptr]bool, path string) {
+	if !val.IsValid() {
+		return
+	}
+
+	// Dereference pointers
+	for val.Kind() == reflect.Pointer {
+		if val.IsNil() {
+			return
+		}
+		ptr := val.Pointer()
+		if visited[ptr] {
+			return
+		}
+		visited[ptr] = true
+		val = val.Elem()
+	}
+
+	t := val.Type()
+
+	switch val.Kind() {
+	case reflect.Struct:
+		for i := 0; i < val.NumField(); i++ {
+			f := t.Field(i)
+			fv := val.Field(i)
+
+			currentPath := path + "." + f.Name
+			if def := f.Tag.Get("default"); def != "" {
+				field := val.Field(i)
+				if field.CanSet() && field.IsZero() {
+					newValue := reflect.New(field.Type()).Interface()
+					if err := json.Unmarshal([]byte(def), newValue); err == nil {
+						field.Set(reflect.ValueOf(newValue).Elem())
+					} else if field.Kind() == reflect.String {
+						field.Set(reflect.ValueOf(def))
+					}
+				}
+			}
+
+			if fv.CanAddr() {
+				findTemplateFieldsRecursive(data, fv.Addr(), visited, currentPath)
+			} else {
+				findTemplateFieldsRecursive(data, fv, visited, currentPath)
+			}
+		}
+
+	case reflect.Slice, reflect.Array:
+		for i := 0; i < val.Len(); i++ {
+			findTemplateFieldsRecursive(data, val.Index(i), visited, fmt.Sprintf("%s[%d]", path, i))
+		}
+
+	case reflect.Map:
+		for _, key := range val.MapKeys() {
+			findTemplateFieldsRecursive(data, val.MapIndex(key), visited, fmt.Sprintf("%s[%v]", path, key))
+		}
+	}
+}
