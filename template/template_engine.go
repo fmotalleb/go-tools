@@ -56,7 +56,7 @@ func buildFuncMap() template.FuncMap {
 
 func EvaluateTemplate(text string, vars any) (string, error) {
 	templateObj := template.New("template")
-
+	templateObj = templateObj.Option("missingkey=error")
 	templateObj = templateObj.Funcs(buildFuncMap())
 
 	templateObj, err := templateObj.Parse(text)
