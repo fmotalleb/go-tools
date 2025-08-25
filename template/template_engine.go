@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/fmotalleb/go-tools/matcher"
 	"github.com/pelletier/go-toml/v2"
@@ -26,29 +27,31 @@ func buildFuncMap() template.FuncMap {
 		"sum": func(a, b int) int {
 			return a + b
 		},
-		"b64dec":    b64dec,
-		"toUpper":   strings.ToUpper,
-		"toLower":   strings.ToLower,
-		"trim":      strings.TrimSpace,
-		"join":      strings.Join,
-		"replace":   strings.ReplaceAll,
-		"hasPrefix": strings.HasPrefix,
-		"hasSuffix": strings.HasSuffix,
-		"contains":  strings.Contains,
-		"toJSON":    toJSON,
-		"fromJSON":  fromJSON,
-		"toYAML":    toYAML,
-		"fromYAML":  fromYAML,
-		"toTOML":    toTOML,
-		"fromTOML":  fromTOML,
-		"itoa":      strconv.Itoa,
-		"toInt":     toInt,
-		"atoi":      strconv.Atoi,
-		"atob":      atob,
-		"matches":   match,
-		"upTo":      upTo,
-		"downTo":    downTo,
-		"file":      readFile,
+		"b64dec":        b64dec,
+		"toUpper":       strings.ToUpper,
+		"toLower":       strings.ToLower,
+		"trim":          strings.TrimSpace,
+		"join":          strings.Join,
+		"replace":       strings.ReplaceAll,
+		"hasPrefix":     strings.HasPrefix,
+		"hasSuffix":     strings.HasSuffix,
+		"contains":      strings.Contains,
+		"toJSON":        toJSON,
+		"fromJSON":      fromJSON,
+		"toYAML":        toYAML,
+		"fromYAML":      fromYAML,
+		"toTOML":        toTOML,
+		"fromTOML":      fromTOML,
+		"itoa":          strconv.Itoa,
+		"toInt":         toInt,
+		"atoi":          strconv.Atoi,
+		"atob":          atob,
+		"matches":       match,
+		"upTo":          upTo,
+		"downTo":        downTo,
+		"file":          readFile,
+		"parseDuration": time.ParseDuration,
+		"parseTime":     time.Parse,
 	}
 
 	return result
