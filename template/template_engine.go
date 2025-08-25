@@ -50,8 +50,7 @@ func buildFuncMap() template.FuncMap {
 		"upTo":          upTo,
 		"downTo":        downTo,
 		"file":          readFile,
-		"parseDuration": time.ParseDuration,
-		"parseTime":     time.Parse,
+		"parseDuration": parseDuration,
 	}
 
 	return result
@@ -129,6 +128,7 @@ func fromYAML(s string) map[string]any {
 	}
 	return result
 }
+
 func toTOML(v any) string {
 	data, err := toml.Marshal(v)
 	if err != nil {
@@ -232,4 +232,12 @@ func readFile(path string) (string, error) {
 		return "", err
 	}
 	return string(data), nil
+}
+
+func parseDuration(dur string) int64 {
+	d, err := time.ParseDuration(dur)
+	if err != nil {
+		panic(err)
+	}
+	return int64(d)
 }
