@@ -18,16 +18,18 @@ type TestStruct struct {
 	StructField   NestedStruct
 	PointerField  *NestedStruct
 	Fields        []NestedStruct
-	PointerFieldS []*NestedStruct
+	Map           map[string]*NestedStruct
 }
 
 type NestedStruct struct {
-	Value string `default:"\"nested\""`
+	Value string `default:"nested"`
 }
 
 func TestEvaluateOnStruct(t *testing.T) {
 	s := &TestStruct{
 		PointerField: &NestedStruct{},
+		Fields:       []NestedStruct{{}, {}},
+		Map:          map[string]*NestedStruct{"0": {}, "1": {}},
 	}
 
 	ApplyDefaults(s, testData)
@@ -52,6 +54,12 @@ func TestEvaluateOnStruct(t *testing.T) {
 	}
 	if s.PointerField.Value != "nested" {
 		t.Errorf("PointerField.Value: expected \"nested\", got %q", s.PointerField.Value)
+	}
+	if s.Fields[0].Value != "nested" {
+		t.Errorf("s.Fields[0].Value: expected \"nested\", got %q", s.Fields[0].Value)
+	}
+	if s.Map["0"].Value != "nested" {
+		t.Errorf("s.Map[\"0\"].Value: expected \"nested\", got %q", s.Map["0"].Value)
 	}
 }
 
