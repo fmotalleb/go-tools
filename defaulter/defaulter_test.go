@@ -4,11 +4,16 @@ import (
 	"testing"
 )
 
+var testData = map[string]any{
+	"float": 15.6,
+}
+
 type TestStruct struct {
 	StringField   string  `default:"hello"`
 	IntField      int     `default:"42"`
 	BoolField     bool    `default:"true"`
 	FloatField    float64 `default:"3.14"`
+	FloatTemplate float64 `default:"{{ .float }}"`
 	NoDefault     int
 	StructField   NestedStruct
 	PointerField  *NestedStruct
@@ -25,7 +30,7 @@ func TestEvaluateOnStruct(t *testing.T) {
 		PointerField: &NestedStruct{},
 	}
 
-	ApplyDefaults(s, nil)
+	ApplyDefaults(s, testData)
 
 	if s.StringField != "hello" {
 		t.Errorf("StringField: expected \"hello\", got %q", s.StringField)
@@ -38,6 +43,9 @@ func TestEvaluateOnStruct(t *testing.T) {
 	}
 	if s.FloatField != 3.14 {
 		t.Errorf("FloatField: expected 3.14, got %f", s.FloatField)
+	}
+	if s.FloatTemplate != 15.6 {
+		t.Errorf("FloatTemplate: expected 15.6, got %f", s.FloatTemplate)
 	}
 	if s.StructField.Value != "nested" {
 		t.Errorf("StructField.Value: expected \"nested\", got %q", s.StructField.Value)

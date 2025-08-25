@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+
+	"github.com/fmotalleb/go-tools/template"
 )
 
 func ApplyDefaults(v any, data any) {
@@ -40,12 +42,16 @@ func findTemplateFieldsRecursive(data any, val reflect.Value, visited map[uintpt
 			currentPath := path + "." + f.Name
 			if def := f.Tag.Get("default"); def != "" {
 				field := val.Field(i)
+				defValue, err := template.EvaluateTemplate(def, data)
+				if err != nil {
+					defValue = def
+				}
 				if field.CanSet() && field.IsZero() {
 					newValue := reflect.New(field.Type()).Interface()
-					if err := json.Unmarshal([]byte(def), newValue); err == nil {
+					if err := json.Unmarshal([]byte(defValue), newValue); err == nil {
 						field.Set(reflect.ValueOf(newValue).Elem())
 					} else if field.Kind() == reflect.String {
-						field.Set(reflect.ValueOf(def))
+						field.Set(reflect.ValueOf(defValue))
 					}
 				}
 			}
