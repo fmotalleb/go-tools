@@ -74,7 +74,6 @@ var (
 
 // Subst performs advanced environment variable substitution
 func Subst(input string) string {
-
 	// Handle escaped dollar signs by temporarily replacing them
 	escaped := strings.ReplaceAll(input, `\$`, "§ESCAPED_DOLLAR§")
 

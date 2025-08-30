@@ -31,6 +31,7 @@ func freeze() {
 		date = time.Time{}
 	}
 }
+
 func init() {
 	freeze()
 }
