@@ -1,10 +1,10 @@
 package defaulter
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 
+	"github.com/fmotalleb/go-tools/decoder"
 	"github.com/fmotalleb/go-tools/env"
 	"github.com/fmotalleb/go-tools/template"
 )
@@ -74,7 +74,7 @@ func applyDefault(val reflect.Value, i int, def string, data any) {
 	}
 	if field.CanSet() && field.IsZero() {
 		newValue := reflect.New(field.Type()).Interface()
-		if err := json.Unmarshal([]byte(defValue), newValue); err == nil {
+		if err := decoder.Decode(newValue, defValue); err == nil {
 			field.Set(reflect.ValueOf(newValue).Elem())
 		} else if field.Kind() == reflect.String {
 			field.Set(reflect.ValueOf(defValue))
