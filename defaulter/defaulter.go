@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/fmotalleb/go-tools/env"
 	"github.com/fmotalleb/go-tools/template"
 )
 
@@ -40,20 +41,10 @@ func findTemplateFieldsRecursive(data any, val reflect.Value, visited map[uintpt
 			fv := val.Field(i)
 
 			currentPath := path + "." + f.Name
-			if def := f.Tag.Get("default"); def != "" {
-				field := val.Field(i)
-				defValue, err := template.EvaluateTemplate(def, data)
-				if err != nil {
-					defValue = def
-				}
-				if field.CanSet() && field.IsZero() {
-					newValue := reflect.New(field.Type()).Interface()
-					if err := json.Unmarshal([]byte(defValue), newValue); err == nil {
-						field.Set(reflect.ValueOf(newValue).Elem())
-					} else if field.Kind() == reflect.String {
-						field.Set(reflect.ValueOf(defValue))
-					}
-				}
+			envKey := f.Tag.Get("env")
+			defVal := f.Tag.Get("default")
+			if def := env.Or(envKey, defVal); def != "" {
+				applyDefault(val, i, def, data)
 			}
 
 			if fv.CanAddr() {
@@ -71,6 +62,22 @@ func findTemplateFieldsRecursive(data any, val reflect.Value, visited map[uintpt
 	case reflect.Map:
 		for _, key := range val.MapKeys() {
 			findTemplateFieldsRecursive(data, val.MapIndex(key), visited, fmt.Sprintf("%s[%v]", path, key))
+		}
+	}
+}
+
+func applyDefault(val reflect.Value, i int, def string, data any) {
+	field := val.Field(i)
+	defValue, err := template.EvaluateTemplate(def, data)
+	if err != nil {
+		defValue = def
+	}
+	if field.CanSet() && field.IsZero() {
+		newValue := reflect.New(field.Type()).Interface()
+		if err := json.Unmarshal([]byte(defValue), newValue); err == nil {
+			field.Set(reflect.ValueOf(newValue).Elem())
+		} else if field.Kind() == reflect.String {
+			field.Set(reflect.ValueOf(defValue))
 		}
 	}
 }
