@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"reflect"
 	"strconv"
@@ -13,13 +14,20 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/Masterminds/sprig/v3"
 	"github.com/fmotalleb/go-tools/matcher"
 	"github.com/pelletier/go-toml/v2"
 	"gopkg.in/yaml.v3"
 )
 
+var fmap template.FuncMap
+
 func buildFuncMap() template.FuncMap {
-	result := template.FuncMap{
+	if fmap != nil {
+		return fmap
+	}
+	result := sprig.FuncMap()
+	internal := template.FuncMap{
 		"env": os.Getenv,
 		"b64enc": func(s string) string {
 			return base64.StdEncoding.EncodeToString([]byte(s))
@@ -53,6 +61,8 @@ func buildFuncMap() template.FuncMap {
 		"parseDuration": parseDuration,
 	}
 
+	maps.Copy(result, internal)
+	fmap = result
 	return result
 }
 
