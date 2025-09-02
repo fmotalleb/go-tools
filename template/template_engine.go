@@ -2,7 +2,6 @@ package template
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -20,39 +19,40 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var fmap template.FuncMap
+var fMap template.FuncMap
 
 func buildFuncMap() template.FuncMap {
-	if fmap != nil {
-		return fmap
+	if fMap != nil {
+		return fMap
 	}
 	result := sprig.FuncMap()
 	internal := template.FuncMap{
-		"env": os.Getenv,
-		"b64enc": func(s string) string {
-			return base64.StdEncoding.EncodeToString([]byte(s))
-		},
-		"sum": func(a, b int) int {
-			return a + b
-		},
-		"b64dec":        b64dec,
-		"toUpper":       strings.ToUpper,
-		"toLower":       strings.ToLower,
-		"trim":          strings.TrimSpace,
-		"join":          strings.Join,
-		"replace":       strings.ReplaceAll,
-		"hasPrefix":     strings.HasPrefix,
-		"hasSuffix":     strings.HasSuffix,
-		"contains":      strings.Contains,
+		// Dropped in favor of sprig funcs
+		// "env": os.Getenv,
+		// "b64enc": func(s string) string {
+		// 	return base64.StdEncoding.EncodeToString([]byte(s))
+		// },
+		// "sum": func(a, b int) int {
+		// 	return a + b
+		// },
+		// "b64dec":        b64dec,
+		// "toUpper":       strings.ToUpper,
+		// "toLower":       strings.ToLower,
+		// "trim":          strings.TrimSpace,
+		// "join":          strings.Join,
+		// "replace":       strings.ReplaceAll,
+		// "hasPrefix":     strings.HasPrefix,
+		// "hasSuffix":     strings.HasSuffix,
+		// "contains":      strings.Contains,
+		// "itoa":          strconv.Itoa,
+		// "atoi":          strconv.Atoi,
 		"toJSON":        toJSON,
 		"fromJSON":      fromJSON,
 		"toYAML":        toYAML,
 		"fromYAML":      fromYAML,
 		"toTOML":        toTOML,
 		"fromTOML":      fromTOML,
-		"itoa":          strconv.Itoa,
 		"toInt":         toInt,
-		"atoi":          strconv.Atoi,
 		"atob":          atob,
 		"matches":       match,
 		"upTo":          upTo,
@@ -62,7 +62,7 @@ func buildFuncMap() template.FuncMap {
 	}
 
 	maps.Copy(result, internal)
-	fmap = result
+	fMap = result
 	return result
 }
 
@@ -156,13 +156,13 @@ func fromTOML(s string) map[string]any {
 	return result
 }
 
-func b64dec(s string) string {
-	data, err := base64.StdEncoding.DecodeString(s)
-	if err != nil {
-		panic(err)
-	}
-	return string(data)
-}
+// func b64dec(s string) string {
+// 	data, err := base64.StdEncoding.DecodeString(s)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return string(data)
+// }
 
 func atob(s string) (bool, error) {
 	switch strings.ToLower(strings.TrimSpace(s)) {
@@ -204,17 +204,17 @@ func toInt(v interface{}) int {
 	}
 }
 
-func match(input, s string) (bool, error) {
+func match(pat, input string) (bool, error) {
 	m := new(matcher.Matcher)
 	var err error
-	_, err = m.Decode(reflect.TypeOf(s), s)
+	_, err = m.Decode(reflect.TypeOf(pat), pat)
 	if err != nil {
 		return false, err
 	}
 	return m.Match(input), nil
 }
 
-func upTo(input, max interface{}) int {
+func upTo(max, input interface{}) int {
 	value := toInt(input)
 	maximum := toInt(max)
 	if value > maximum {
@@ -223,7 +223,7 @@ func upTo(input, max interface{}) int {
 	return value
 }
 
-func downTo(input, min interface{}) int {
+func downTo(min, input interface{}) int {
 	value := toInt(input)
 	minimum := toInt(min)
 	if value < minimum {
