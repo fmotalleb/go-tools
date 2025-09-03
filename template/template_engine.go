@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 	"text/template"
 	"time"
 
@@ -19,12 +20,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var fMap template.FuncMap
+var fMap = sync.OnceValue(buildFuncMap)
 
 func buildFuncMap() template.FuncMap {
-	if fMap != nil {
-		return fMap
-	}
 	result := sprig.FuncMap()
 	internal := template.FuncMap{
 		// Dropped in favor of sprig funcs
@@ -62,14 +60,13 @@ func buildFuncMap() template.FuncMap {
 	}
 
 	maps.Copy(result, internal)
-	fMap = result
 	return result
 }
 
 func EvaluateTemplate(text string, vars any) (string, error) {
 	templateObj := template.New("template")
 	templateObj = templateObj.Option("missingkey=error")
-	templateObj = templateObj.Funcs(buildFuncMap())
+	templateObj = templateObj.Funcs(fMap())
 
 	templateObj, err := templateObj.Parse(text)
 	if err != nil {
@@ -86,7 +83,7 @@ func EvaluateTemplate(text string, vars any) (string, error) {
 
 func EvaluateTemplateWithFuncs(text string, vars any, funcs template.FuncMap) (string, error) {
 	templateObj := template.New("template")
-	fmap := buildFuncMap()
+	fmap := fMap()
 	for k, v := range funcs {
 		fmap[k] = v
 	}
