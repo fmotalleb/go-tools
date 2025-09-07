@@ -6,13 +6,13 @@ import (
 	"github.com/go-viper/mapstructure/v2"
 )
 
-func StringTemplateEvaluate() mapstructure.DecodeHookFunc {
+func StringTemplateEvaluate(data ...any) mapstructure.DecodeHookFunc {
 	return func(from, to reflect.Type, val interface{}) (interface{}, error) {
 		if from.Kind() != reflect.String {
 			return val, nil
 		}
 		str := val.(string)
-		return EvaluateTemplate(str, struct{}{})
+		return EvaluateTemplate(str, data)
 	}
 }
 

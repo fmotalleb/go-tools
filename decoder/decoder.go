@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/fmotalleb/go-tools/decoder/hooks"
+	"github.com/fmotalleb/go-tools/template"
 	"github.com/go-viper/mapstructure/v2"
 )
 
@@ -27,10 +28,12 @@ func GetHooks() []mapstructure.DecodeHookFunc {
 	}
 }
 
-func Build[T any](item T) (*mapstructure.Decoder, error) {
+func Build[T any](item T, extraHooks ...mapstructure.DecodeHookFunc) (*mapstructure.Decoder, error) {
 	allHooks := GetHooks()
 	allHooks = append(allHooks, hooks.GetExtraHooks()...)
-
+	if len(extraHooks) != 0 {
+		allHooks = append(allHooks, extraHooks...)
+	}
 	hook := mapstructure.ComposeDecodeHookFunc(
 		allHooks...,
 	)
@@ -65,7 +68,8 @@ func Decode(dst any, src any) error {
 }
 
 func DecodeWithTemplate(dst any, src any, data any) error {
-	decoder, err := Build(dst)
+	hook := template.StringTemplateEvaluate(data)
+	decoder, err := Build(dst, hook)
 	if err != nil {
 		return errors.Join(
 			errors.New("failed to create decoder"),
@@ -78,6 +82,5 @@ func DecodeWithTemplate(dst any, src any, data any) error {
 			err,
 		)
 	}
-
 	return nil
 }
