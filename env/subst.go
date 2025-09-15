@@ -1,11 +1,11 @@
 package env
 
 import (
+	"bytes"
 	"errors"
 	"os"
 	"regexp"
 	"strings"
-	"sync"
 )
 
 type substOperator struct {
@@ -15,7 +15,7 @@ type substOperator struct {
 
 var (
 	substWhenEmpty = substOperator{
-		regex: regexp.MustCompile(`\$\{([A-Za-z_][A-Za-z0-9_]*)(:-([^}]*))?\}`),
+		regex: regexp.MustCompile(`^\{([A-Za-z_][A-Za-z0-9_]*)(:-([^}]*))?\}$`),
 		handler: func(matches []string) string {
 			varName := matches[1]
 			defaultValue := ""
@@ -30,7 +30,7 @@ var (
 		},
 	}
 	substWhenExists = substOperator{
-		regex: regexp.MustCompile(`\$\{([A-Za-z_][A-Za-z0-9_]*):(\+([^}]*))?\}`),
+		regex: regexp.MustCompile(`^\{([A-Za-z_][A-Za-z0-9_]*):(\+([^}]*))?\}$`),
 		handler: func(matches []string) string {
 			varName := matches[1]
 			alternateValue := ""
@@ -45,7 +45,7 @@ var (
 		},
 	}
 	substWhenEmptyError = substOperator{
-		regex: regexp.MustCompile(`\$\{([A-Za-z_][A-Za-z0-9_]*):(\?([^}]*))?\}`),
+		regex: regexp.MustCompile(`^\{([A-Za-z_][A-Za-z0-9_]*):(\?([^}]*))?\}$`),
 		handler: func(matches []string) string {
 			varName := matches[1]
 			errorMsg := varName + ": parameter null or not set"
@@ -60,7 +60,7 @@ var (
 		},
 	}
 	substBasicEnv = substOperator{
-		regex: regexp.MustCompile(`\$(([A-Za-z_][A-Za-z0-9_]*)|\{([A-Za-z_][A-Za-z0-9_]*)\})`),
+		regex: regexp.MustCompile(`^(([A-Za-z_][A-Za-z0-9_]*)|\{([A-Za-z_][A-Za-z0-9_]*)\})$`),
 		handler: func(matches []string) string {
 			return os.Getenv(matches[2])
 		},
@@ -73,19 +73,99 @@ var (
 	}
 )
 
-var escapedEnvSelector = sync.OnceValue(func() *regexp.Regexp {
-	return regexp.MustCompile(`(\\\$|\$\$)`)
-})
-
-// Subst performs advanced environment variable substitution
 func Subst(input string) string {
-	// Handle escaped dollar signs by temporarily replacing them, handle ($$ or \$)
-	escaped := escapedEnvSelector().ReplaceAllString(input, "§ESCAPED_DOLLAR§")
+	reader := bytes.NewReader([]byte(input))
+	b := new(strings.Builder)
 
-	// Apply substitutions in order of precedence
-	result := escaped
+	for {
+		r, _, err := reader.ReadRune()
+		if err != nil {
+			break // EOF
+		}
+
+		switch r {
+		case '\\': // Handle escaped $
+			next, _, err := reader.ReadRune()
+			if err == nil {
+				if next == '$' {
+					b.WriteRune('$')
+				} else {
+					b.WriteRune('\\')
+					b.WriteRune(next)
+				}
+			}
+		case '$':
+			// Peek next rune
+			next, _, err := reader.ReadRune()
+			if err != nil {
+				b.WriteRune('$')
+				break
+			}
+			if next == '$' {
+				b.WriteRune('$')
+				continue
+			}
+
+			// unread so getVar can consume
+			_ = reader.UnreadRune()
+			b.WriteString(getVar(reader))
+		default:
+			b.WriteRune(r)
+		}
+	}
+
+	return b.String()
+}
+
+func getVar(reader *bytes.Reader) string {
+	varName := new(strings.Builder)
+
+	// Read first rune (could be '{' or letter/_)
+	r, _, err := reader.ReadRune()
+	if err != nil {
+		return ""
+	}
+
+	startedWithBrace := false
+	if r == '{' {
+		startedWithBrace = true
+		varName.WriteRune('{')
+		r, _, err = reader.ReadRune()
+		if err != nil || !isVarStart(r) {
+			return "" // invalid variable start after {
+		}
+	}
+
+	varName.WriteRune(r)
+
+	for {
+		peek, _, err := reader.ReadRune()
+		if err != nil {
+			break // EOF
+		}
+
+		if startedWithBrace {
+			// Stop only when closing brace is found
+			varName.WriteRune(peek)
+			if peek == '}' {
+				break
+			}
+		} else {
+			if !isVarChar(peek) {
+				_ = reader.UnreadRune()
+				break
+			}
+			varName.WriteRune(peek)
+		}
+	}
+
+	vName := varName.String()
+
 	for _, pattern := range substPatterns {
-		result = pattern.regex.ReplaceAllStringFunc(result, func(match string) string {
+		if !pattern.regex.MatchString(vName) {
+			continue
+		}
+		return pattern.regex.ReplaceAllStringFunc(vName, func(match string) string {
 			matches := pattern.regex.FindStringSubmatch(match)
 			if matches == nil {
 				return match
@@ -93,9 +173,15 @@ func Subst(input string) string {
 			return pattern.handler(matches)
 		})
 	}
+	return ""
+}
 
-	// Restore escaped dollar signs
-	result = strings.ReplaceAll(result, "§ESCAPED_DOLLAR§", "$")
+func isVarStart(r rune) bool {
+	return (r >= 'A' && r <= 'Z') ||
+		(r >= 'a' && r <= 'z') ||
+		r == '_'
+}
 
-	return result
+func isVarChar(r rune) bool {
+	return isVarStart(r) || (r >= '0' && r <= '9')
 }
