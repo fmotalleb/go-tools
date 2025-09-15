@@ -62,14 +62,18 @@ var (
 	substBasicEnv = substOperator{
 		regex: regexp.MustCompile(`^(([A-Za-z_][A-Za-z0-9_]*)|\{([A-Za-z_][A-Za-z0-9_]*)\})$`),
 		handler: func(matches []string) string {
-			return os.Getenv(matches[2])
+			name := matches[2]
+			if name == "" {
+				name = matches[3]
+			}
+			return os.Getenv(name)
 		},
 	}
 	substPatterns = []substOperator{
+		substBasicEnv,
 		substWhenEmpty,
 		substWhenExists,
 		substWhenEmptyError,
-		substBasicEnv,
 	}
 )
 
@@ -116,11 +120,8 @@ func Subst(input string) string {
 
 	return b.String()
 }
-
 func getVar(reader *bytes.Reader) string {
 	varName := new(strings.Builder)
-
-	// Read first rune (could be '{' or letter/_)
 	r, _, err := reader.ReadRune()
 	if err != nil {
 		return ""
@@ -129,49 +130,41 @@ func getVar(reader *bytes.Reader) string {
 	startedWithBrace := false
 	if r == '{' {
 		startedWithBrace = true
-		varName.WriteRune('{')
 		r, _, err = reader.ReadRune()
 		if err != nil || !isVarStart(r) {
-			return "" // invalid variable start after {
+			return "" // invalid start
 		}
 	}
-
 	varName.WriteRune(r)
 
 	for {
 		peek, _, err := reader.ReadRune()
 		if err != nil {
-			break // EOF
+			break
 		}
-
 		if startedWithBrace {
-			// Stop only when closing brace is found
 			varName.WriteRune(peek)
 			if peek == '}' {
 				break
 			}
-		} else {
-			if !isVarChar(peek) {
-				_ = reader.UnreadRune()
-				break
-			}
+		} else if isVarChar(peek) {
 			varName.WriteRune(peek)
+		} else {
+			_ = reader.UnreadRune()
+			break
 		}
 	}
 
 	vName := varName.String()
+	if startedWithBrace && !strings.HasSuffix(vName, "}") {
+		return "${" + vName // return literal if not properly closed
+	}
 
 	for _, pattern := range substPatterns {
-		if !pattern.regex.MatchString(vName) {
-			continue
-		}
-		return pattern.regex.ReplaceAllStringFunc(vName, func(match string) string {
-			matches := pattern.regex.FindStringSubmatch(match)
-			if matches == nil {
-				return match
-			}
+		matches := pattern.regex.FindStringSubmatch(vName)
+		if matches != nil {
 			return pattern.handler(matches)
-		})
+		}
 	}
 	return ""
 }
