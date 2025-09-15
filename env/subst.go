@@ -5,6 +5,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 )
 
 type substOperator struct {
@@ -72,14 +73,16 @@ var (
 	}
 )
 
+var escapedEnvSelector = sync.OnceValue(func() *regexp.Regexp {
+	return regexp.MustCompile(`(\\\$|\$\$)`)
+})
+
 // Subst performs advanced environment variable substitution
 func Subst(input string) string {
-	// Handle escaped dollar signs by temporarily replacing them
-	escaped := strings.ReplaceAll(input, `\$`, "§ESCAPED_DOLLAR§")
+	// Handle escaped dollar signs by temporarily replacing them, handle ($$ or \$)
+	escaped := escapedEnvSelector().ReplaceAllString(input, "§ESCAPED_DOLLAR§")
 
-	// Define regex patterns for different substitution types
-
-	// Step 3: Apply substitutions in order of precedence
+	// Apply substitutions in order of precedence
 	result := escaped
 	for _, pattern := range substPatterns {
 		result = pattern.regex.ReplaceAllStringFunc(result, func(match string) string {
@@ -91,7 +94,7 @@ func Subst(input string) string {
 		})
 	}
 
-	// Step 4: Restore escaped dollar signs
+	// Restore escaped dollar signs
 	result = strings.ReplaceAll(result, "§ESCAPED_DOLLAR§", "$")
 
 	return result
