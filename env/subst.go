@@ -52,7 +52,6 @@ var (
 			if len(matches) > 3 && matches[3] != "" {
 				errorMsg = matches[3]
 			}
-
 			if value := os.Getenv(varName); value != "" {
 				return value
 			}
@@ -130,9 +129,10 @@ func getVar(reader *bytes.Reader) string {
 	startedWithBrace := false
 	if r == '{' {
 		startedWithBrace = true
+		varName.WriteRune(r)
 		r, _, err = reader.ReadRune()
 		if err != nil || !isVarStart(r) {
-			return "" // invalid start
+			return "${" // invalid start
 		}
 	}
 	varName.WriteRune(r)
@@ -157,7 +157,7 @@ func getVar(reader *bytes.Reader) string {
 
 	vName := varName.String()
 	if startedWithBrace && !strings.HasSuffix(vName, "}") {
-		return "${" + vName // return literal if not properly closed
+		return "$" + vName // return literal if not properly closed
 	}
 
 	for _, pattern := range substPatterns {
