@@ -13,6 +13,7 @@ require (
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/alecthomas/assert/v2 v2.11.0
 	github.com/go-viper/mapstructure/v2 v2.4.0
+	github.com/maniartech/signals v1.3.1
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/spf13/cast v1.9.2
