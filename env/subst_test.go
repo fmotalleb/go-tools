@@ -31,7 +31,7 @@ func TestSubst(t *testing.T) {
 			name:  "missing variable",
 			env:   map[string]string{},
 			input: "$FOO",
-			want:  "",
+			want:  "$FOO",
 		},
 		{
 			name:  "default value when empty",
@@ -110,11 +110,18 @@ func TestSubst(t *testing.T) {
 			env:   map[string]string{},
 			input: "finish with ${",
 			want:  "finish with ${",
-		}, {
-			name:  "literal: ignore ending",
+		},
+		{
+			name:  "literal: not-set braced variable",
 			env:   map[string]string{},
 			input: "finish with ${INVALID}",
 			want:  "finish with ",
+		},
+		{
+			name:  "literal: invalid env with brace ending",
+			env:   map[string]string{},
+			input: "finish with $INVALID}",
+			want:  "finish with $INVALID}",
 		},
 	}
 

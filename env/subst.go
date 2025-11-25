@@ -59,13 +59,13 @@ var (
 		},
 	}
 	substBasicEnv = substOperator{
-		regex: regexp.MustCompile(`^(([A-Za-z_][A-Za-z0-9_]*)|\{([A-Za-z_][A-Za-z0-9_]*)\})$`),
+		regex: regexp.MustCompile(`^(([A-Za-z_][A-Za-z0-9_]*)|\{([A-Za-z_][A-Za-z0-9_]*))$`),
 		handler: func(matches []string) string {
 			name := matches[2]
 			if name == "" {
 				name = matches[3]
 			}
-			return os.Getenv(name)
+			return Or(name, "$"+matches[0])
 		},
 	}
 	substPatterns = []substOperator{
@@ -119,6 +119,7 @@ func Subst(input string) string {
 
 	return b.String()
 }
+
 func getVar(reader *bytes.Reader) string {
 	varName := new(strings.Builder)
 	r, _, err := reader.ReadRune()
@@ -144,13 +145,13 @@ func getVar(reader *bytes.Reader) string {
 		}
 		if startedWithBrace {
 			varName.WriteRune(peek)
-			if peek == '}' {
-				break
-			}
 		} else if isVarChar(peek) {
 			varName.WriteRune(peek)
 		} else {
 			_ = reader.UnreadRune()
+			break
+		}
+		if peek == '}' {
 			break
 		}
 	}
