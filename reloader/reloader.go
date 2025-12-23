@@ -11,9 +11,9 @@ var (
 	ErrReloadTimeout         = errors.New("reload timeout exceeded")
 )
 
-func WithReload(
+func WithReload[T any](
 	parent context.Context,
-	reload <-chan any,
+	reload <-chan T,
 	task func(context.Context) error,
 	timeout time.Duration,
 ) error {
