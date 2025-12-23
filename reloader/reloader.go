@@ -6,8 +6,10 @@ import (
 	"time"
 )
 
-var ErrParentContextCanceled = errors.New("parent context killed")
-var ErrReloadTimeout = errors.New("reload timeout exceeded")
+var (
+	ErrParentContextCanceled = errors.New("parent context killed")
+	ErrReloadTimeout         = errors.New("reload timeout exceeded")
+)
 
 func WithReload(
 	parent context.Context,
