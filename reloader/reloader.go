@@ -45,16 +45,16 @@ func WithReload[T any](
 			return err
 
 		case r := <-reload:
-			logger = logger.Named("with-signal").WithLazy(zap.Any("signal", r))
-			logger.Debug("reload signal received")
+			rLog := logger.Named("with-signal").WithLazy(zap.Any("signal", r))
+			rLog.Debug("reload signal received")
 			cancel()
 			select {
 			case <-errCh:
-				logger.Debug(
+				rLog.Debug(
 					"task finished",
 				)
 			case <-time.After(timeout):
-				logger.Warn(
+				rLog.Warn(
 					"task did't finish after given timeout",
 					zap.Duration("timeout", timeout),
 				)
