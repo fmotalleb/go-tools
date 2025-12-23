@@ -3,6 +3,7 @@ package reloader
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/fmotalleb/go-tools/log"
@@ -12,6 +13,7 @@ import (
 var (
 	ErrParentContextCanceled = errors.New("parent context killed")
 	ErrReloadTimeout         = errors.New("reload timeout exceeded")
+	ErrReloadChannelClosed   = errors.New("reload channel closed")
 )
 
 func WithReload[T any](
@@ -23,44 +25,83 @@ func WithReload[T any](
 	if err := parent.Err(); err != nil {
 		return err
 	}
-	logger := log.Of(parent).Named("reloader")
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
 	for {
-		ctx, cancel := context.WithCancel(parent)
-		errCh := make(chan error, 1)
-
-		go func() {
-			errCh <- task(ctx)
-		}()
-
-		select {
-		case err := <-errCh:
-			logger.Warn("task finished with error", zap.Error(err))
-			cancel()
+		err := handleTask(parent, task, reload, timer, timeout)
+		if err != nil {
 			return err
-
-		case <-parent.Done():
-			err := errors.Join(ErrParentContextCanceled, parent.Err())
-			logger.Warn("parent context is dead", zap.Error(err))
-			cancel()
-			return err
-
-		case r := <-reload:
-			rLog := logger.Named("with-signal").WithLazy(zap.Any("signal", r))
-			rLog.Debug("reload signal received")
-			cancel()
-			select {
-			case <-errCh:
-				rLog.Debug(
-					"task finished",
-				)
-			case <-time.After(timeout):
-				rLog.Warn(
-					"task did't finish after given timeout",
-					zap.Duration("timeout", timeout),
-				)
-				return ErrReloadTimeout
-			}
-			continue
 		}
 	}
+}
+
+func handleTask[T any](
+	parent context.Context,
+	task func(context.Context) error,
+	reload <-chan T,
+	timer *time.Timer,
+	timeout time.Duration,
+) error {
+	logger := log.Of(parent).Named("reloader")
+	ctx, cancel := context.WithCancel(parent)
+	errCh := make(chan error, 1)
+
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				errCh <- fmt.Errorf("task panic: %v", r)
+			}
+		}()
+		errCh <- task(ctx)
+	}()
+
+	select {
+	case err := <-errCh:
+		if err != nil {
+			logger.Warn("task finished with error", zap.Error(err))
+		} else {
+			logger.Debug("task finished cleanly")
+		}
+		cancel()
+		return err
+
+	case <-parent.Done():
+		err := errors.Join(ErrParentContextCanceled, parent.Err())
+		logger.Warn("parent context is dead", zap.Error(err))
+		cancel()
+		return err
+
+	case r, ok := <-reload:
+		cancel()
+		rLog := logger.Named("with-signal").WithLazy(zap.Any("signal", r))
+		if !ok {
+			rLog.Error("reload signal channel is closed", zap.Error(ErrReloadChannelClosed))
+			return ErrReloadChannelClosed
+		}
+		rLog.Debug("reload signal received")
+		select {
+		case <-errCh:
+			rLog.Debug(
+				"task finished",
+			)
+			resetTimer(timer, timeout)
+		case <-timer.C:
+			rLog.Warn(
+				"task did't finish after given timeout",
+				zap.Duration("timeout", timeout),
+			)
+			return ErrReloadTimeout
+		}
+	}
+	return nil
+}
+
+func resetTimer(t *time.Timer, d time.Duration) {
+	if !t.Stop() {
+		select {
+		case <-t.C:
+		default:
+		}
+	}
+	t.Reset(d)
 }
