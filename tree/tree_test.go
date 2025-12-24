@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-// Helper function to create a simple tree for testing
+// Helper function to create a simple tree for testing.
 func createTestTree() *Node[int] {
 	root := NewNode(1)
 	root.AddChild(2)

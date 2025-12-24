@@ -77,7 +77,6 @@ func buildGraph[R comparable, T DependencyNode[R]](
 	nodes []T,
 	dependencies map[R][]R,
 ) (map[R]int, map[R][]R) {
-
 	inDegree := make(map[R]int)
 	adjList := make(map[R][]R)
 
@@ -102,7 +101,6 @@ func buildForest[R comparable, T DependencyNode[R]](
 	inDegree map[R]int,
 	adjList map[R][]R,
 ) ([]*Node[T], int) {
-
 	queue := make([]R, 0)
 	for name, deg := range inDegree {
 		if deg == 0 {
@@ -150,7 +148,6 @@ func getOrCreateNode[R comparable, T DependencyNode[R]](
 	nodeTree map[R]*Node[T],
 	childSet map[R]map[R]struct{},
 ) *Node[T] {
-
 	if n, ok := nodeTree[name]; ok {
 		return n
 	}

@@ -164,7 +164,6 @@ func TestNewForest_UsingDependenciesField(t *testing.T) {
 	}
 }
 
-
 func TestShakeForest(t *testing.T) {
 	nodes := []depNode{
 		{name: "a", deps: []string{"b"}}, // size 2
@@ -207,5 +206,4 @@ func TestShakeForest(t *testing.T) {
 	if !reflect.DeepEqual(tree2Names, []string{"c", "d"}) {
 		t.Errorf("Second shaken tree has nodes %v, want ['c', 'd']", tree2Names)
 	}
-
 }
