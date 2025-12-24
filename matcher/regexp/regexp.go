@@ -1,7 +1,6 @@
 package regexp
 
 import (
-	"fmt"
 	"regexp"
 )
 
@@ -27,5 +26,5 @@ func MustCompile(exp string) *Matcher {
 }
 
 func (m *Matcher) MarshalText() ([]byte, error) {
-	return []byte(fmt.Sprintf("regex:%s", m.String())), nil
+	return []byte("regex:" + m.String()), nil
 }

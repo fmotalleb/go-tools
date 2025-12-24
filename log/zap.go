@@ -29,7 +29,7 @@ func SetDebugDefaults() {
 	}
 }
 
-// Builder provides a fluent interface for configuring zap logger
+// Builder provides a fluent interface for configuring zap logger.
 type Builder struct {
 	level             zapcore.Level
 	development       bool
@@ -45,7 +45,7 @@ type Builder struct {
 	name              string
 }
 
-// NewBuilder creates a new LoggerBuilder with default values
+// NewBuilder creates a new LoggerBuilder with default values.
 func NewBuilder() *Builder {
 	return &Builder{
 		level:             DefaultLevel,
@@ -74,7 +74,7 @@ func NewBuilder() *Builder {
 	}
 }
 
-// Level sets the logging level (Default info)
+// Level sets the logging level (Default info).
 func (b *Builder) Level(level string) *Builder {
 	builder := *b
 	switch level {
@@ -98,14 +98,14 @@ func (b *Builder) Level(level string) *Builder {
 	return &builder
 }
 
-// LevelValue sets the logging level using zapcore.Level
+// LevelValue sets the logging level using zapcore.Level.
 func (b *Builder) LevelValue(level zapcore.Level) *Builder {
 	builder := *b
 	builder.level = level
 	return &builder
 }
 
-// Development enables/disables development mode (console logger)
+// Development enables/disables development mode (console logger).
 func (b *Builder) Development(dev bool) *Builder {
 	builder := *b
 	builder.development = dev
@@ -116,21 +116,21 @@ func (b *Builder) Development(dev bool) *Builder {
 	return &builder
 }
 
-// DisableCaller enables/disables caller information
+// DisableCaller enables/disables caller information.
 func (b *Builder) DisableCaller(disable bool) *Builder {
 	builder := *b
 	builder.disableCaller = disable
 	return &builder
 }
 
-// DisableStacktrace enables/disables stacktrace
+// DisableStacktrace enables/disables stacktrace.
 func (b *Builder) DisableStacktrace(disable bool) *Builder {
 	builder := *b
 	builder.disableStacktrace = disable
 	return &builder
 }
 
-// Sampling sets the sampling configuration
+// Sampling sets the sampling configuration.
 func (b *Builder) Sampling(initial int, thereafter int) *Builder {
 	builder := *b
 	builder.sampling = &zap.SamplingConfig{
@@ -140,170 +140,170 @@ func (b *Builder) Sampling(initial int, thereafter int) *Builder {
 	return &builder
 }
 
-// NoSampling disables sampling
+// NoSampling disables sampling.
 func (b *Builder) NoSampling() *Builder {
 	builder := *b
 	builder.sampling = nil
 	return &builder
 }
 
-// Encoding sets the log encoding format
+// Encoding sets the log encoding format.
 func (b *Builder) Encoding(encoding string) *Builder {
 	builder := *b
 	builder.encoding = encoding
 	return &builder
 }
 
-// JSONEncoding sets JSON encoding
+// JSONEncoding sets JSON encoding.
 func (b *Builder) JSONEncoding() *Builder {
 	return b.Encoding("json")
 }
 
-// ConsoleEncoding sets console encoding
+// ConsoleEncoding sets console encoding.
 func (b *Builder) ConsoleEncoding() *Builder {
 	return b.Encoding("console")
 }
 
-// TimeKey sets the time field key
+// TimeKey sets the time field key.
 func (b *Builder) TimeKey(key string) *Builder {
 	builder := *b
 	builder.encoderConfig.TimeKey = key
 	return &builder
 }
 
-// LevelKey sets the level field key
+// LevelKey sets the level field key.
 func (b *Builder) LevelKey(key string) *Builder {
 	builder := *b
 	builder.encoderConfig.LevelKey = key
 	return &builder
 }
 
-// NameKey sets the name field key
+// NameKey sets the name field key.
 func (b *Builder) NameKey(key string) *Builder {
 	builder := *b
 	builder.encoderConfig.NameKey = key
 	return &builder
 }
 
-// CallerKey sets the caller field key
+// CallerKey sets the caller field key.
 func (b *Builder) CallerKey(key string) *Builder {
 	builder := *b
 	builder.encoderConfig.CallerKey = key
 	return &builder
 }
 
-// MessageKey sets the message field key
+// MessageKey sets the message field key.
 func (b *Builder) MessageKey(key string) *Builder {
 	builder := *b
 	builder.encoderConfig.MessageKey = key
 	return &builder
 }
 
-// StacktraceKey sets the stacktrace field key
+// StacktraceKey sets the stacktrace field key.
 func (b *Builder) StacktraceKey(key string) *Builder {
 	builder := *b
 	builder.encoderConfig.StacktraceKey = key
 	return &builder
 }
 
-// LineEnding sets the line ending
+// LineEnding sets the line ending.
 func (b *Builder) LineEnding(ending string) *Builder {
 	builder := *b
 	builder.encoderConfig.LineEnding = ending
 	return &builder
 }
 
-// EncodeLevel sets the level encoder
+// EncodeLevel sets the level encoder.
 func (b *Builder) EncodeLevel(encoder zapcore.LevelEncoder) *Builder {
 	builder := *b
 	builder.encoderConfig.EncodeLevel = encoder
 	return &builder
 }
 
-// LowercaseLevel sets lowercase level encoding
+// LowercaseLevel sets lowercase level encoding.
 func (b *Builder) LowercaseLevel() *Builder {
 	return b.EncodeLevel(zapcore.LowercaseLevelEncoder)
 }
 
-// CapitalLevel sets capital level encoding
+// CapitalLevel sets capital level encoding.
 func (b *Builder) CapitalLevel() *Builder {
 	return b.EncodeLevel(zapcore.CapitalLevelEncoder)
 }
 
-// ColorLevel sets colored level encoding
+// ColorLevel sets colored level encoding.
 func (b *Builder) ColorLevel() *Builder {
 	return b.EncodeLevel(zapcore.CapitalColorLevelEncoder)
 }
 
-// EncodeTime sets the time encoder
+// EncodeTime sets the time encoder.
 func (b *Builder) EncodeTime(encoder zapcore.TimeEncoder) *Builder {
 	builder := *b
 	builder.encoderConfig.EncodeTime = encoder
 	return &builder
 }
 
-// ISO8601Time sets ISO8601 time encoding
+// ISO8601Time sets ISO8601 time encoding.
 func (b *Builder) ISO8601Time() *Builder {
 	return b.EncodeTime(zapcore.ISO8601TimeEncoder)
 }
 
-// RFC3339Time sets RFC3339 time encoding
+// RFC3339Time sets RFC3339 time encoding.
 func (b *Builder) RFC3339Time() *Builder {
 	return b.EncodeTime(zapcore.RFC3339TimeEncoder)
 }
 
-// EpochTime sets epoch time encoding
+// EpochTime sets epoch time encoding.
 func (b *Builder) EpochTime() *Builder {
 	return b.EncodeTime(zapcore.EpochTimeEncoder)
 }
 
-// CustomTime sets custom time encoding
+// CustomTime sets custom time encoding.
 func (b *Builder) CustomTime(layout string) *Builder {
 	return b.EncodeTime(func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 		enc.AppendString(t.Format(layout))
 	})
 }
 
-// EncodeDuration sets the duration encoder
+// EncodeDuration sets the duration encoder.
 func (b *Builder) EncodeDuration(encoder zapcore.DurationEncoder) *Builder {
 	builder := *b
 	builder.encoderConfig.EncodeDuration = encoder
 	return &builder
 }
 
-// SecondsDuration sets seconds duration encoding
+// SecondsDuration sets seconds duration encoding.
 func (b *Builder) SecondsDuration() *Builder {
 	return b.EncodeDuration(zapcore.SecondsDurationEncoder)
 }
 
-// NanosDuration sets nanoseconds duration encoding
+// NanosDuration sets nanoseconds duration encoding.
 func (b *Builder) NanosDuration() *Builder {
 	return b.EncodeDuration(zapcore.NanosDurationEncoder)
 }
 
-// StringDuration sets string duration encoding
+// StringDuration sets string duration encoding.
 func (b *Builder) StringDuration() *Builder {
 	return b.EncodeDuration(zapcore.StringDurationEncoder)
 }
 
-// EncodeCaller sets the caller encoder
+// EncodeCaller sets the caller encoder.
 func (b *Builder) EncodeCaller(encoder zapcore.CallerEncoder) *Builder {
 	builder := *b
 	builder.encoderConfig.EncodeCaller = encoder
 	return &builder
 }
 
-// ShortCaller sets short caller encoding
+// ShortCaller sets short caller encoding.
 func (b *Builder) ShortCaller() *Builder {
 	return b.EncodeCaller(zapcore.ShortCallerEncoder)
 }
 
-// FullCaller sets full caller encoding
+// FullCaller sets full caller encoding.
 func (b *Builder) FullCaller() *Builder {
 	return b.EncodeCaller(zapcore.FullCallerEncoder)
 }
 
-// OutputPaths sets the output paths
+// OutputPaths sets the output paths.
 func (b *Builder) OutputPaths(paths ...string) *Builder {
 	builder := *b
 	builder.outputPaths = make([]string, len(paths))
@@ -311,14 +311,14 @@ func (b *Builder) OutputPaths(paths ...string) *Builder {
 	return &builder
 }
 
-// AddOutputPath adds an output path
+// AddOutputPath adds an output path.
 func (b *Builder) AddOutputPath(path string) *Builder {
 	builder := *b
 	builder.outputPaths = append(builder.outputPaths, path)
 	return &builder
 }
 
-// ErrorOutputPaths sets the error output paths
+// ErrorOutputPaths sets the error output paths.
 func (b *Builder) ErrorOutputPaths(paths ...string) *Builder {
 	builder := *b
 	builder.errorOutputPaths = make([]string, len(paths))
@@ -326,7 +326,7 @@ func (b *Builder) ErrorOutputPaths(paths ...string) *Builder {
 	return &builder
 }
 
-// Silent log messages (mostly used for testing)
+// Silent log messages (mostly used for testing).
 func (b *Builder) Silent() *Builder {
 	builder := *b
 	builder.outputPaths = make([]string, 0)
@@ -334,14 +334,14 @@ func (b *Builder) Silent() *Builder {
 	return &builder
 }
 
-// AddErrorOutputPath adds an error output path
+// AddErrorOutputPath adds an error output path.
 func (b *Builder) AddErrorOutputPath(path string) *Builder {
 	builder := *b
 	builder.errorOutputPaths = append(builder.errorOutputPaths, path)
 	return &builder
 }
 
-// InitialFields sets initial fields
+// InitialFields sets initial fields.
 func (b *Builder) InitialFields(fields map[string]interface{}) *Builder {
 	builder := *b
 	builder.initialFields = make(map[string]interface{})
@@ -351,7 +351,7 @@ func (b *Builder) InitialFields(fields map[string]interface{}) *Builder {
 	return &builder
 }
 
-// AddInitialField adds an initial field
+// AddInitialField adds an initial field.
 func (b *Builder) AddInitialField(key string, value interface{}) *Builder {
 	builder := *b
 	if builder.initialFields == nil {
@@ -361,36 +361,36 @@ func (b *Builder) AddInitialField(key string, value interface{}) *Builder {
 	return &builder
 }
 
-// ServiceName adds service name to initial fields
+// ServiceName adds service name to initial fields.
 func (b *Builder) ServiceName(name string) *Builder {
 	return b.AddInitialField("service", name)
 }
 
-// Version adds version to initial fields
+// Version adds version to initial fields.
 func (b *Builder) Version(version string) *Builder {
 	return b.AddInitialField("version", version)
 }
 
-// Environment adds environment to initial fields
+// Environment adds environment to initial fields.
 func (b *Builder) Environment(env string) *Builder {
 	return b.AddInitialField("environment", env)
 }
 
-// AddHook adds a hook function
+// AddHook adds a hook function.
 func (b *Builder) AddHook(hook func(zapcore.Entry) error) *Builder {
 	builder := *b
 	builder.hooks = append(builder.hooks, hook)
 	return &builder
 }
 
-// Name sets the logger name
+// Name sets the logger name.
 func (b *Builder) Name(name string) *Builder {
 	builder := *b
 	builder.name = name
 	return &builder
 }
 
-// Build creates the zap logger with the configured options
+// Build creates the zap logger with the configured options.
 func (b *Builder) Build() (*zap.Logger, error) {
 	config := zap.Config{
 		Level:             zap.NewAtomicLevelAt(b.level),
@@ -423,7 +423,7 @@ func (b *Builder) Build() (*zap.Logger, error) {
 	return logger, nil
 }
 
-// MustBuild creates the logger and panics on error
+// MustBuild creates the logger and panics on error.
 func (b *Builder) MustBuild() *zap.Logger {
 	logger, err := b.Build()
 	if err != nil {
@@ -432,7 +432,7 @@ func (b *Builder) MustBuild() *zap.Logger {
 	return logger
 }
 
-// FromEnv configures the builder using environment variables with sane defaults
+// FromEnv configures the builder using environment variables with sane defaults.
 func (b *Builder) FromEnv() *Builder {
 	builder := *b
 

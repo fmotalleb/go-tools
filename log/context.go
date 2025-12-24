@@ -10,7 +10,7 @@ type contextKey string
 
 const loggerKey contextKey = "zap-logger"
 
-// WithNewLogger builds logger and attach it to given context
+// WithNewLogger builds logger and attach it to given context.
 func WithNewLogger(
 	ctx context.Context,
 	builders ...BuilderFunc,
@@ -26,7 +26,7 @@ func WithNewLogger(
 	return WithLogger(ctx, l), nil
 }
 
-// WithNewLoggerForced does what [WithNewLogger] does but panics if fails
+// WithNewLoggerForced does what [WithNewLogger] does but panics if fails.
 func WithNewLoggerForced(
 	ctx context.Context,
 	builders ...BuilderFunc,
@@ -40,7 +40,7 @@ func WithNewLoggerForced(
 	return WithLogger(ctx, l)
 }
 
-// WithNewEnvLogger builds logger using env variables and attach it to given context
+// WithNewEnvLogger builds logger using env variables and attach it to given context.
 func WithNewEnvLogger(
 	ctx context.Context,
 	builders ...BuilderFunc,
@@ -58,7 +58,7 @@ func WithNewEnvLogger(
 	)
 }
 
-// WithNewLoggerForced does what [WithNewLogger] does but panics if fails
+// WithNewLoggerForced does what [WithNewLogger] does but panics if fails.
 func WithNewEnvLoggerForced(
 	ctx context.Context,
 	builders ...BuilderFunc,
@@ -76,12 +76,12 @@ func WithNewEnvLoggerForced(
 	)
 }
 
-// WithLogger adds logger to context
+// WithLogger adds logger to context.
 func WithLogger(ctx context.Context, logger *zap.Logger) context.Context {
 	return context.WithValue(ctx, loggerKey, logger)
 }
 
-// FromContext extracts logger from context, or returns a nop logger if it was not found
+// FromContext extracts logger from context, or returns a nop logger if it was not found.
 func FromContext(ctx context.Context) *zap.Logger {
 	if logger, ok := ctx.Value(loggerKey).(*zap.Logger); ok {
 		return logger
@@ -89,7 +89,7 @@ func FromContext(ctx context.Context) *zap.Logger {
 	return zap.NewNop()
 }
 
-// Of is an alias to FromContext
+// Of is an alias to FromContext.
 func Of(ctx context.Context) *zap.Logger {
 	return FromContext(ctx)
 }

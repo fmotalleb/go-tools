@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Or returns environment variable value or first non-empty default
+// Or returns environment variable value or first non-empty default.
 func Or(key string, def ...string) string {
 	if key == "" {
 		return cmp.Or(def...)
@@ -18,7 +18,7 @@ func Or(key string, def ...string) string {
 	return cmp.Or(items...)
 }
 
-// BoolOr returns environment variable as bool or default
+// BoolOr returns environment variable as bool or default.
 func BoolOr(key string, def ...bool) bool {
 	if key == "" {
 		return cmp.Or(def...)
@@ -31,7 +31,7 @@ func BoolOr(key string, def ...bool) bool {
 	return cmp.Or(def...)
 }
 
-// IntOr returns environment variable as int or default
+// IntOr returns environment variable as int or default.
 func IntOr(key string, def ...int) int {
 	if key == "" {
 		return cmp.Or(def...)
@@ -44,7 +44,7 @@ func IntOr(key string, def ...int) int {
 	return cmp.Or(def...)
 }
 
-// SliceOr returns environment variable as slice (comma-separated) or default
+// SliceOr returns environment variable as slice (comma-separated) or default.
 func SliceOr(key string, def []string) []string {
 	if key == "" {
 		return def
@@ -52,7 +52,7 @@ func SliceOr(key string, def []string) []string {
 	return SliceSeparatorOr(key, ",", def)
 }
 
-// SliceOr returns environment variable as slice (comma-separated) or default
+// SliceOr returns environment variable as slice (comma-separated) or default.
 func SliceSeparatorOr(key string, sep string, def []string) []string {
 	if env := os.Getenv(key); env != "" {
 		return strings.Split(env, sep)
@@ -60,7 +60,7 @@ func SliceSeparatorOr(key string, sep string, def []string) []string {
 	return def
 }
 
-// DurationOr returns environment variable as Duration or default
+// DurationOr returns environment variable as Duration or default.
 func DurationOr(key string, def ...time.Duration) time.Duration {
 	if key == "" {
 		return cmp.Or(def...)

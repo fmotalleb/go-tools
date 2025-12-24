@@ -2,7 +2,6 @@ package wildcard
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 	"unsafe"
 )
@@ -244,5 +243,5 @@ func (m *Matcher) MatchString(s string) bool {
 }
 
 func (m *Matcher) MarshalText() ([]byte, error) {
-	return []byte(fmt.Sprintf("wildcard:%s", m.pattern)), nil
+	return []byte("wildcard:" + m.pattern), nil
 }

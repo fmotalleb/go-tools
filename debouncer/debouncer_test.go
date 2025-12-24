@@ -84,12 +84,9 @@ func TestDebounceConcurrentAdd(t *testing.T) {
 	}
 }
 
-// Issue #1
+// Issue #1.
 func TestDebounceDelayed(t *testing.T) {
-
-	var (
-		counter1 uint64
-	)
+	var counter1 uint64
 
 	f1 := func() {
 		atomic.AddUint64(&counter1, 1)
@@ -107,7 +104,6 @@ func TestDebounceDelayed(t *testing.T) {
 	if c1 != 1 {
 		t.Error("Expected count 1, was", c1)
 	}
-
 }
 
 func BenchmarkDebounce(b *testing.B) {

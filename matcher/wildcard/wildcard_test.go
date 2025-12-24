@@ -74,7 +74,7 @@ func TestWildcardMatcherCompileError(t *testing.T) {
 	}
 }
 
-// Benchmark compilation
+// Benchmark compilation.
 func BenchmarkCompile(b *testing.B) {
 	patterns := []string{
 		"example.com",                            // Simple literal
@@ -97,7 +97,7 @@ func BenchmarkCompile(b *testing.B) {
 	}
 }
 
-// Benchmark matching with pre-compiled patterns
+// Benchmark matching with pre-compiled patterns.
 func BenchmarkMatch(b *testing.B) {
 	benchmarks := []struct {
 		name    string
@@ -171,7 +171,7 @@ func BenchmarkMatch(b *testing.B) {
 	}
 }
 
-// Benchmark to verify zero allocations
+// Benchmark to verify zero allocations.
 func BenchmarkMatchZeroAlloc(b *testing.B) {
 	matcher := wildcard.MustCompile("*.api-??.{example.com,test.net}")
 	input := "subdomain.api-01.example.com"
@@ -188,7 +188,7 @@ func BenchmarkMatchZeroAlloc(b *testing.B) {
 	// This should report 0 allocs/op
 }
 
-// Benchmark different input lengths
+// Benchmark different input lengths.
 func BenchmarkMatchInputLength(b *testing.B) {
 	pattern := "*.example.com"
 	matcher := wildcard.MustCompile(pattern)
@@ -213,7 +213,7 @@ func BenchmarkMatchInputLength(b *testing.B) {
 	}
 }
 
-// Benchmark worst-case scenarios
+// Benchmark worst-case scenarios.
 func BenchmarkMatchWorstCase(b *testing.B) {
 	benchmarks := []struct {
 		name    string
@@ -251,7 +251,7 @@ func BenchmarkMatchWorstCase(b *testing.B) {
 	}
 }
 
-// Parallel benchmark
+// Parallel benchmark.
 func BenchmarkMatchParallel(b *testing.B) {
 	matcher := wildcard.MustCompile("*.api-??.example.com")
 	inputs := []string{

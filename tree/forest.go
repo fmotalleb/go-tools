@@ -17,7 +17,7 @@ type DependencyNode[T comparable] interface {
 // Can Detect Circular Dependency
 // Creates new tree if a node has no dependent
 // A single node may appear on other trees as well, thus output node count
-// may be far more than what input was
+// may be far more than what input was.
 func NewForest[R comparable, T DependencyNode[R]](nodes []T) (Forest[T], error) {
 	nodeMap := make(map[R]T)
 	for _, node := range nodes {
@@ -35,7 +35,6 @@ func NewForest[R comparable, T DependencyNode[R]](nodes []T) (Forest[T], error) 
 		}
 
 		dependencies[name] = append(dependencies[name], node.Dependencies()...)
-
 	}
 
 	// Process dependents field (inverse relationship)
