@@ -130,7 +130,7 @@ func TestSubst(t *testing.T) {
 			// clear env first
 			os.Clearenv()
 			for k, v := range tt.env {
-				os.Setenv(k, v)
+				t.Setenv(k, v)
 			}
 
 			defer func() {

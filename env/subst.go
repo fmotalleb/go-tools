@@ -138,18 +138,20 @@ func getVar(reader *bytes.Reader) string {
 	}
 	varName.WriteRune(r)
 
+runeLoop:
 	for {
 		peek, _, err := reader.ReadRune()
 		if err != nil {
 			break
 		}
-		if startedWithBrace {
+		switch {
+		case startedWithBrace:
 			varName.WriteRune(peek)
-		} else if isVarChar(peek) {
+		case isVarChar(peek):
 			varName.WriteRune(peek)
-		} else {
+		default:
 			_ = reader.UnreadRune()
-			break
+			break runeLoop
 		}
 		if peek == '}' {
 			break

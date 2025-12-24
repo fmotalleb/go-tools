@@ -13,10 +13,11 @@ import (
 type BuilderFunc = func(*Builder) *Builder
 
 var (
-	DefaultLevel                           = zapcore.InfoLevel
-	DefaultFormat                          = zapcore.LowercaseLevelEncoder
-	DefaultDevelopment                     = false
-	DefaultSampling    *zap.SamplingConfig = nil
+	DefaultLevel                             = zapcore.InfoLevel
+	DefaultFormat                            = zapcore.LowercaseLevelEncoder
+	DefaultDevelopment                       = false
+	DefaultSampling      *zap.SamplingConfig = nil
+	DefaultDebugSampling                     = 100
 )
 
 func SetDebugDefaults() {
@@ -24,8 +25,8 @@ func SetDebugDefaults() {
 	DefaultFormat = zapcore.CapitalColorLevelEncoder
 	DefaultDevelopment = true
 	DefaultSampling = &zap.SamplingConfig{
-		Initial:    100,
-		Thereafter: 100,
+		Initial:    DefaultDebugSampling,
+		Thereafter: DefaultDebugSampling,
 	}
 }
 
@@ -492,8 +493,8 @@ func (b *Builder) FromEnv() *Builder {
 
 	// Sampling configuration
 	if env.BoolOr("ZAPLOG_ENABLE_SAMPLING", false) {
-		initial := env.IntOr("ZAPLOG_SAMPLING_INITIAL", 100)
-		thereafter := env.IntOr("ZAPLOG_SAMPLING_THEREAFTER", 100)
+		initial := env.IntOr("ZAPLOG_SAMPLING_INITIAL", DefaultDebugSampling)
+		thereafter := env.IntOr("ZAPLOG_SAMPLING_THEREAFTER", DefaultDebugSampling)
 		builder = *builder.Sampling(initial, thereafter)
 	}
 

@@ -19,7 +19,7 @@ func TestOr(t *testing.T) {
 	}
 
 	// set
-	os.Setenv(key, "value")
+	t.Setenv(key, "value")
 	if got := env.Or(key, "default"); got != "value" {
 		t.Errorf("Or() = %v; want %v", got, "value")
 	}
@@ -38,12 +38,12 @@ func TestBoolOr(t *testing.T) {
 		t.Errorf("BoolOr() = %v; want %v", got, true)
 	}
 
-	os.Setenv(key, "false")
+	t.Setenv(key, "false")
 	if got := env.BoolOr(key, true); got != false {
 		t.Errorf("BoolOr() = %v; want %v", got, false)
 	}
 
-	os.Setenv(key, "invalid")
+	t.Setenv(key, "invalid")
 	if got := env.BoolOr(key, true); got != true {
 		t.Errorf("BoolOr() = %v; want %v", got, true)
 	}
@@ -61,12 +61,12 @@ func TestIntOr(t *testing.T) {
 		t.Errorf("IntOr() = %v; want %v", got, 42)
 	}
 
-	os.Setenv(key, "123")
+	t.Setenv(key, "123")
 	if got := env.IntOr(key, 42); got != 123 {
 		t.Errorf("IntOr() = %v; want %v", got, 123)
 	}
 
-	os.Setenv(key, "invalid")
+	t.Setenv(key, "invalid")
 	if got := env.IntOr(key, 42); got != 42 {
 		t.Errorf("IntOr() = %v; want %v", got, 42)
 	}
@@ -85,7 +85,7 @@ func TestSliceOr(t *testing.T) {
 		t.Errorf("SliceOr() = %v; want %v", got, def)
 	}
 
-	os.Setenv(key, "x,y,z")
+	t.Setenv(key, "x,y,z")
 	if got := env.SliceOr(key, def); !reflect.DeepEqual(got, []string{"x", "y", "z"}) {
 		t.Errorf("SliceOr() = %v; want %v", got, []string{"x", "y", "z"})
 	}
@@ -104,7 +104,7 @@ func TestSliceSeparatorOr(t *testing.T) {
 		t.Errorf("SliceSeparatorOr() = %v; want %v", got, def)
 	}
 
-	os.Setenv(key, "a;b;c")
+	t.Setenv(key, "a;b;c")
 	if got := env.SliceSeparatorOr(key, ";", def); !reflect.DeepEqual(got, []string{"a", "b", "c"}) {
 		t.Errorf("SliceSeparatorOr() = %v; want %v", got, []string{"a", "b", "c"})
 	}
@@ -119,12 +119,12 @@ func TestDurationOr(t *testing.T) {
 		t.Errorf("DurationOr() = %v; want %v", got, def)
 	}
 
-	os.Setenv(key, "10s")
+	t.Setenv(key, "10s")
 	if got := env.DurationOr(key, def); got != 10*time.Second {
 		t.Errorf("DurationOr() = %v; want %v", got, 10*time.Second)
 	}
 
-	os.Setenv(key, "invalid")
+	t.Setenv(key, "invalid")
 	if got := env.DurationOr(key, def); got != def {
 		t.Errorf("DurationOr() = %v; want %v", got, def)
 	}

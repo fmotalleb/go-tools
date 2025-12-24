@@ -21,8 +21,7 @@ type matcher interface {
 
 func (m *Matcher) Decode(from reflect.Type, val interface{}) (any, error) {
 	var ty, pat string
-	switch from.Kind() {
-	case reflect.String:
+	if val, ok := val.(string); ok {
 		ty, pat = fromStr(val)
 	}
 	switch ty {

@@ -88,14 +88,16 @@ func String() string {
 	return out
 }
 
+const day = 24 * time.Hour
+
 func humanDuration(d time.Duration) string {
 	if d < time.Minute {
 		return "just now"
 	}
 	parts := []string{}
-	if days := d / (24 * time.Hour); days > 0 {
+	if days := d / day; days > 0 {
 		parts = append(parts, fmt.Sprintf("%d day%s", days, plural(days)))
-		d %= 24 * time.Hour
+		d %= day
 	}
 	if hours := d / time.Hour; hours > 0 {
 		parts = append(parts, fmt.Sprintf("%d hour%s", hours, plural(hours)))
