@@ -19,120 +19,15 @@ type DependencyNode[T comparable] interface {
 // A single node may appear on other trees as well, thus output node count
 // may be far more than what input was.
 func NewForest[R comparable, T DependencyNode[R]](nodes []T) (Forest[T], error) {
-	nodeMap := make(map[R]T)
-	for _, node := range nodes {
-		nodeMap[node.Name()] = node
-	}
+	nodeMap := indexNodes(nodes)
 
-	// Step 2: Build complete dependency graph from both dependencies and dependents
-	dependencies := make(map[R][]R) // node -> its dependencies
+	dependencies := buildDependencyMap(nodes)
+	inDegree, adjList := buildGraph(nodes, dependencies)
 
-	// Process dependencies field
-	for _, node := range nodes {
-		name := node.Name()
-		if _, exists := dependencies[name]; !exists {
-			dependencies[name] = []R{}
-		}
+	roots, processed := buildForest(nodeMap, inDegree, adjList)
 
-		dependencies[name] = append(dependencies[name], node.Dependencies()...)
-	}
-
-	// Process dependents field (inverse relationship)
-	for _, node := range nodes {
-		name := node.Name()
-		for _, dependent := range node.Dependents() {
-			if _, exists := dependencies[dependent]; !exists {
-				dependencies[dependent] = []R{}
-			}
-			// If A has B as dependent, then B depends on A
-			dependencies[dependent] = append(dependencies[dependent], name)
-		}
-	}
-
-	// Step 3: Build adjacency list and calculate in-degrees
-	inDegree := make(map[R]int)
-	adjList := make(map[R][]R) // node -> nodes that depend on it
-
-	for _, node := range nodes {
-		name := node.Name()
-		if _, exists := inDegree[name]; !exists {
-			inDegree[name] = 0
-		}
-		if _, exists := adjList[name]; !exists {
-			adjList[name] = []R{}
-		}
-	}
-
-	for node, deps := range dependencies {
-		inDegree[node] = len(deps)
-		for _, dep := range deps {
-			adjList[dep] = append(adjList[dep], node)
-		}
-	}
-
-	// Step 4: Find all nodes with no dependencies (roots)
-	queue := []R{}
-	for name, degree := range inDegree {
-		if degree == 0 {
-			queue = append(queue, name)
-		}
-	}
-
-	// Step 5: Process nodes using Kahn's algorithm with duplicate prevention
-	processed := 0
-	nodeTree := make(map[R]*Node[T])
-	roots := []*Node[T]{}
-	childSet := make(map[R]map[R]struct{}) // parent -> set of child names
-
-	for len(queue) > 0 {
-		current := queue[0]
-		queue = queue[1:]
-		processed++
-
-		// Create node if not exists
-		if _, exists := nodeTree[current]; !exists {
-			nodeTree[current] = NewNode(nodeMap[current])
-			// If this node has no dependencies, it's a root
-			if inDegree[current] == 0 {
-				roots = append(roots, nodeTree[current])
-			}
-			// Initialize child set for this node
-			childSet[current] = make(map[R]struct{})
-		}
-
-		// Process nodes that depend on current
-		for _, dependent := range adjList[current] {
-			inDegree[dependent]--
-
-			// Create dependent node if not exists
-			if _, exists := nodeTree[dependent]; !exists {
-				nodeTree[dependent] = NewNode(nodeMap[dependent])
-				childSet[dependent] = make(map[R]struct{})
-			}
-
-			// Only add child if not already present
-			if _, exists := childSet[current][dependent]; !exists {
-				nodeTree[current].children = append(nodeTree[current].children, nodeTree[dependent])
-				childSet[current][dependent] = struct{}{}
-			}
-
-			// If all dependencies resolved, add to queue
-			if inDegree[dependent] == 0 {
-				queue = append(queue, dependent)
-			}
-		}
-	}
-
-	// Step 6: Check for circular dependencies
 	if processed != len(nodes) {
-		// Find nodes involved in cycles
-		cycleNodes := []R{}
-		for name := range inDegree {
-			if inDegree[name] > 0 {
-				cycleNodes = append(cycleNodes, name)
-			}
-		}
-		return nil, fmt.Errorf("circular dependency detected involving nodes: %v", cycleNodes)
+		return nil, cycleError(inDegree)
 	}
 
 	return roots, nil
@@ -150,4 +45,128 @@ func ShakeForest[T any](f Forest[T], test func(*Node[T]) bool) Forest[T] {
 	}
 	res = slices.Clip(res)
 	return res
+}
+
+func indexNodes[R comparable, T DependencyNode[R]](nodes []T) map[R]T {
+	m := make(map[R]T, len(nodes))
+	for _, n := range nodes {
+		m[n.Name()] = n
+	}
+	return m
+}
+
+func buildDependencyMap[R comparable, T DependencyNode[R]](nodes []T) map[R][]R {
+	deps := make(map[R][]R)
+
+	for _, n := range nodes {
+		name := n.Name()
+		deps[name] = append(deps[name], n.Dependencies()...)
+	}
+
+	for _, n := range nodes {
+		parent := n.Name()
+		for _, child := range n.Dependents() {
+			deps[child] = append(deps[child], parent)
+		}
+	}
+
+	return deps
+}
+
+func buildGraph[R comparable, T DependencyNode[R]](
+	nodes []T,
+	dependencies map[R][]R,
+) (map[R]int, map[R][]R) {
+
+	inDegree := make(map[R]int)
+	adjList := make(map[R][]R)
+
+	for _, n := range nodes {
+		name := n.Name()
+		inDegree[name] = 0
+		adjList[name] = nil
+	}
+
+	for node, deps := range dependencies {
+		inDegree[node] = len(deps)
+		for _, dep := range deps {
+			adjList[dep] = append(adjList[dep], node)
+		}
+	}
+
+	return inDegree, adjList
+}
+
+func buildForest[R comparable, T DependencyNode[R]](
+	nodeMap map[R]T,
+	inDegree map[R]int,
+	adjList map[R][]R,
+) ([]*Node[T], int) {
+
+	queue := make([]R, 0)
+	for name, deg := range inDegree {
+		if deg == 0 {
+			queue = append(queue, name)
+		}
+	}
+
+	nodeTree := make(map[R]*Node[T])
+	childSet := make(map[R]map[R]struct{})
+	roots := make([]*Node[T], 0, len(queue))
+	for _, name := range queue {
+		roots = append(roots, getOrCreateNode(name, nodeMap, nodeTree, childSet))
+	}
+	processed := 0
+
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+		processed++
+
+		currNode := getOrCreateNode(current, nodeMap, nodeTree, childSet)
+
+		for _, dep := range adjList[current] {
+			inDegree[dep]--
+
+			depNode := getOrCreateNode(dep, nodeMap, nodeTree, childSet)
+
+			if _, exists := childSet[current][dep]; !exists {
+				currNode.children = append(currNode.children, depNode)
+				childSet[current][dep] = struct{}{}
+			}
+
+			if inDegree[dep] == 0 {
+				queue = append(queue, dep)
+			}
+		}
+	}
+
+	return roots, processed
+}
+
+func getOrCreateNode[R comparable, T DependencyNode[R]](
+	name R,
+	nodeMap map[R]T,
+	nodeTree map[R]*Node[T],
+	childSet map[R]map[R]struct{},
+) *Node[T] {
+
+	if n, ok := nodeTree[name]; ok {
+		return n
+	}
+
+	n := NewNode(nodeMap[name])
+	nodeTree[name] = n
+	childSet[name] = make(map[R]struct{})
+	return n
+}
+
+func cycleError[R comparable](inDegree map[R]int) error {
+	var cycleNodes []R
+	for name, deg := range inDegree {
+		if deg > 0 {
+			cycleNodes = append(cycleNodes, name)
+		}
+	}
+	return fmt.Errorf("circular dependency detected involving nodes: %v", cycleNodes)
 }
