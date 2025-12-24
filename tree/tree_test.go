@@ -118,7 +118,7 @@ func TestTraverseLevelOrder(t *testing.T) {
 
 func TestWhere(t *testing.T) {
 	tree := createTestTree()
-	filtered, ok := tree.Where(func(n *Node[int]) bool {
+	_, ok := tree.Where(func(n *Node[int]) bool {
 		return n.Data%2 == 0
 	})
 	if ok {
@@ -126,7 +126,7 @@ func TestWhere(t *testing.T) {
 	}
 
 	tree2 := createTestTree()
-	filtered, ok = tree2.Where(func(n *Node[int]) bool {
+	filtered, ok := tree2.Where(func(n *Node[int]) bool {
 		return n.Data < 5
 	})
 
