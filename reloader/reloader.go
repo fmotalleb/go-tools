@@ -25,7 +25,7 @@ func WithOsSignal(
 	timeout time.Duration,
 	signals ...os.Signal,
 ) error {
-	reloadSig := make(chan os.Signal, 10)
+	reloadSig := make(chan os.Signal, 1)
 	signal.Notify(reloadSig, os.Interrupt, syscall.SIGHUP)
 	defer signal.Stop(reloadSig)
 	return WithReload(
