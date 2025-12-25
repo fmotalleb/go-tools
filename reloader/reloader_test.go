@@ -139,3 +139,24 @@ func TestWithReload_TaskFinishesNormallyAndRestarts(t *testing.T) {
 		t.Errorf("expected task to be restarted, but it was called only %d time(s)", counter)
 	}
 }
+
+func TestResetTimer_WhenTimerExpired(t *testing.T) {
+	// Create a timer with a very short duration.
+	timer := time.NewTimer(1 * time.Millisecond)
+
+	// Wait for the timer to expire to ensure t.Stop() will return false.
+	<-timer.C
+
+	// Now call resetTimer on the expired timer.
+	// This should execute the `!t.Stop()` branch.
+	newDuration := 5 * time.Millisecond
+	resetTimer(timer, newDuration)
+
+	// Check if the timer fires again after the new duration.
+	select {
+	case <-timer.C:
+		// All good, the timer was reset correctly.
+	case <-time.After(10 * time.Millisecond):
+		t.Error("timer was not reset correctly after expiring")
+	}
+}
