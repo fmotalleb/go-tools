@@ -112,3 +112,30 @@ func TestWithReload_TaskPanics(t *testing.T) {
 		t.Errorf("expected error message '%s', got '%s'", expected, err.Error())
 	}
 }
+
+func TestWithReload_TaskFinishesNormallyAndRestarts(t *testing.T) {
+	parent, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var counter int
+	task := func(ctx context.Context) error {
+		counter++
+		return nil
+	}
+
+	go func() {
+		// We expect this to return an error when the parent context is canceled.
+		_ = WithReload(parent, make(<-chan bool), task, time.Second)
+	}()
+
+	// Let the reloader run for a bit to allow the task to be called multiple times.
+	time.Sleep(10 * time.Millisecond)
+	cancel() // Stop the reloader.
+
+	// Give the reloader a moment to exit after cancellation
+	time.Sleep(10 * time.Millisecond)
+
+	if counter <= 1 {
+		t.Errorf("expected task to be restarted, but it was called only %d time(s)", counter)
+	}
+}
