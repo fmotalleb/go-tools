@@ -40,8 +40,13 @@ func WithOsSignal(
 	timeout time.Duration,
 	signals ...os.Signal,
 ) error {
+	signalsToUse := signals
+	if len(signalsToUse) == 0 {
+		signalsToUse = DefaultSignals
+	}
+
 	reloadSig := make(chan os.Signal, 1)
-	signal.Notify(reloadSig, signals...)
+	signal.Notify(reloadSig, signalsToUse...)
 	defer signal.Stop(reloadSig)
 	return WithReload(
 		parent,

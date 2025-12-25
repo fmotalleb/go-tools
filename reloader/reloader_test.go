@@ -114,6 +114,61 @@ func TestWithOsSignal(t *testing.T) {
 	}
 }
 
+func TestWithOsSignal_NoExplicitSignals(t *testing.T) {
+	parent, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	taskRun := make(chan struct{}, 1)
+	task := func(ctx context.Context) error {
+		select {
+		case taskRun <- struct{}{}:
+		default:
+		}
+		<-ctx.Done()
+		return nil
+	}
+
+	// This go routine will run WithOsSignal in the background.
+	// It should terminate when os.Interrupt is sent.
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- WithOsSignal(parent, task, time.Second)
+	}()
+
+	// Wait for the task to start
+	<-taskRun
+
+	// Give a small moment for the signal.Notify to set up
+	time.Sleep(100 * time.Millisecond)
+
+	// Send an interrupt signal to the process.
+	// This should be handled by WithOsSignal's signal.Notify,
+	// which is listening to DefaultSignals.
+	// os.Interrupt is part of DefaultSignals on both Unix and Windows.
+	p, err := os.FindProcess(os.Getpid())
+	if err != nil {
+		t.Fatalf("Failed to find process: %v", err)
+	}
+	err = p.Signal(os.Interrupt)
+	if err != nil {
+		t.Fatalf("Failed to send signal: %v", err)
+	}
+	// After the interrupt, the reloader will restart the task.
+	// We need to cancel the parent context to make the reloader exit.
+	cancel()
+
+	// Wait for WithOsSignal to return. It should return a `context.Canceled` error
+	// because the parent context was canceled.
+	select {
+	case err := <-errCh:
+		if !errors.Is(err, context.Canceled) {
+			t.Errorf("WithOsSignal returned an unexpected error: %v", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("WithOsSignal did not return in time after interrupt signal")
+	}
+}
+
 func TestWithReload_TaskPanics(t *testing.T) {
 	err := WithReload(context.Background(), make(<-chan bool), func(ctx context.Context) error {
 		panic("task panic")
