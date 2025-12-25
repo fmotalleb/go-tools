@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/fmotalleb/go-tools/log"
@@ -15,6 +18,23 @@ var (
 	ErrReloadTimeout         = errors.New("reload timeout exceeded")
 	ErrReloadChannelClosed   = errors.New("reload channel closed")
 )
+
+func WithOsSignal(
+	parent context.Context,
+	task func(context.Context) error,
+	timeout time.Duration,
+	signals ...os.Signal,
+) error {
+	reloadSig := make(chan os.Signal, 10)
+	signal.Notify(reloadSig, os.Interrupt, syscall.SIGHUP)
+	defer signal.Stop(reloadSig)
+	return WithReload(
+		parent,
+		reloadSig,
+		task,
+		timeout,
+	)
+}
 
 func WithReload[T any](
 	parent context.Context,
