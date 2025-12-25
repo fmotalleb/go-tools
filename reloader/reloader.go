@@ -86,7 +86,7 @@ func handleTask[T any](
 			logger.Debug("task finished cleanly")
 		}
 		cancel()
-		return nil, true
+		return err, true
 
 	case <-parent.Done():
 		err := errors.Join(ErrParentContextCanceled, parent.Err())
