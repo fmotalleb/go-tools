@@ -48,9 +48,12 @@ func WithReload[T any](
 	timer := time.NewTimer(timeout)
 	defer timer.Stop()
 	for {
-		err := handleTask(parent, task, reload, timer, timeout)
+		err, shouldExit := handleTask(parent, task, reload, timer, timeout)
 		if err != nil {
 			return err
+		}
+		if shouldExit {
+			return nil
 		}
 	}
 }
@@ -61,7 +64,7 @@ func handleTask[T any](
 	reload <-chan T,
 	timer *time.Timer,
 	timeout time.Duration,
-) error {
+) (error, bool) {
 	logger := log.Of(parent).Named("reloader")
 	ctx, cancel := context.WithCancel(parent)
 	errCh := make(chan error, 1)
@@ -83,37 +86,37 @@ func handleTask[T any](
 			logger.Debug("task finished cleanly")
 		}
 		cancel()
-		return err
+		return nil, true
 
 	case <-parent.Done():
 		err := errors.Join(ErrParentContextCanceled, parent.Err())
 		logger.Warn("parent context is dead", zap.Error(err))
 		cancel()
-		return err
+		return err, true
 
 	case r, ok := <-reload:
 		cancel()
 		rLog := logger.Named("with-signal").WithLazy(zap.Any("signal", r))
 		if !ok {
 			rLog.Error("reload signal channel is closed", zap.Error(ErrReloadChannelClosed))
-			return ErrReloadChannelClosed
+			return ErrReloadChannelClosed, true
 		}
 		rLog.Debug("reload signal received")
 		select {
 		case <-errCh:
 			rLog.Debug(
-				"task finished",
+				"task finished in grace window",
 			)
 			resetTimer(timer, timeout)
+			return nil, false
 		case <-timer.C:
 			rLog.Warn(
 				"task did't finish after given timeout",
 				zap.Duration("timeout", timeout),
 			)
-			return ErrReloadTimeout
+			return ErrReloadTimeout, true
 		}
 	}
-	return nil
 }
 
 func resetTimer(t *time.Timer, d time.Duration) {
