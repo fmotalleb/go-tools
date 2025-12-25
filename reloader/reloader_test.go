@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"sync/atomic"
 	"syscall"
 	"testing"
 	"time"
@@ -63,23 +64,38 @@ func TestWithReload_ReloadTimeout(t *testing.T) {
 }
 
 func TestWithReload_SuccessfulReload(t *testing.T) {
+	parent, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	reload := make(chan bool, 1)
-	taskFinished := make(chan struct{})
+	var execCount int32
+
+	task := func(ctx context.Context) error {
+		atomic.AddInt32(&execCount, 1)
+		<-ctx.Done()
+		return nil
+	}
 
 	go func() {
-		err := WithReload(context.Background(), reload, func(ctx context.Context) error {
-			<-ctx.Done()
-			return nil
-		}, time.Second)
-		if err != nil && !errors.Is(err, ErrParentContextCanceled) && !errors.Is(err, context.Canceled) {
-			t.Errorf("unexpected error: %v", err)
-		}
-		close(taskFinished)
+		// This will run until the parent context is canceled.
+		_ = WithReload(parent, reload, task, time.Second)
 	}()
 
+	// Trigger one reload.
 	reload <- true
-	time.Sleep(100 * time.Millisecond) // give it time to process the reload
-	// in a real scenario, we might want to check if the task was actually restarted
+
+	// Give it a moment to process the reload and start the new task.
+	time.Sleep(100 * time.Millisecond)
+
+	// Stop the main loop.
+	cancel()
+
+	// Give the reloader a moment to exit.
+	time.Sleep(100 * time.Millisecond)
+
+	if atomic.LoadInt32(&execCount) <= 1 {
+		t.Errorf("expected task to be executed more than once on reload, but got %d executions", execCount)
+	}
 }
 
 func TestWithOsSignal(t *testing.T) {
@@ -113,30 +129,23 @@ func TestWithReload_TaskPanics(t *testing.T) {
 	}
 }
 
-func TestWithReload_TaskFinishesNormallyAndRestarts(t *testing.T) {
-	parent, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
+func TestWithReload_TaskFinishesNormallyAsSingleShot(t *testing.T) {
 	var counter int
 	task := func(ctx context.Context) error {
 		counter++
 		return nil
 	}
 
-	go func() {
-		// We expect this to return an error when the parent context is canceled.
-		_ = WithReload(parent, make(<-chan bool), task, time.Second)
-	}()
+	// With the new implementation, WithReload should exit cleanly (return nil)
+	// when the task finishes on its own.
+	err := WithReload(context.Background(), make(<-chan bool), task, time.Second)
 
-	// Let the reloader run for a bit to allow the task to be called multiple times.
-	time.Sleep(10 * time.Millisecond)
-	cancel() // Stop the reloader.
+	if err != nil {
+		t.Fatalf("Expected WithReload to exit with nil error, but got: %v", err)
+	}
 
-	// Give the reloader a moment to exit after cancellation
-	time.Sleep(10 * time.Millisecond)
-
-	if counter <= 1 {
-		t.Errorf("expected task to be restarted, but it was called only %d time(s)", counter)
+	if counter != 1 {
+		t.Errorf("Expected task to be called exactly once, but it was called %d time(s)", counter)
 	}
 }
 
