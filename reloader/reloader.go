@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/fmotalleb/go-tools/log"
@@ -26,7 +25,7 @@ func WithOsSignal(
 	signals ...os.Signal,
 ) error {
 	reloadSig := make(chan os.Signal, 1)
-	signal.Notify(reloadSig, os.Interrupt, syscall.SIGHUP)
+	signal.Notify(reloadSig, signals...)
 	defer signal.Stop(reloadSig)
 	return WithReload(
 		parent,
