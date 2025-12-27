@@ -63,6 +63,8 @@ func TestWithReload_ReloadTimeoutUnreached(t *testing.T) {
 	reload := make(chan bool, 2)
 	errCh := make(chan error, 2)
 	startSig := make(chan struct{}, 2)
+	reloadWait := time.Millisecond * 4
+	waitTimeout := time.Millisecond * 20
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go func() {
@@ -74,16 +76,16 @@ func TestWithReload_ReloadTimeoutUnreached(t *testing.T) {
 				<-ctx.Done()
 				return nil
 			},
-			time.Millisecond,
+			reloadWait/2,
 		)
 	}()
 	// Wait for first task start
 	select {
 	case <-startSig:
-	case <-time.After(20 * time.Millisecond):
+	case <-time.After(waitTimeout):
 		t.Fatal("task did not start initially")
 	}
-	time.Sleep(5 * time.Millisecond)
+	time.Sleep(reloadWait)
 	// Trigger reload
 	reload <- true
 
@@ -93,7 +95,7 @@ func TestWithReload_ReloadTimeoutUnreached(t *testing.T) {
 		t.Fatalf("WithReload returned unexpectedly: %v", err)
 	case <-startSig:
 		// success: task restarted
-	case <-time.After(20 * time.Millisecond):
+	case <-time.After(waitTimeout):
 		t.Fatal("task was not restarted on reload")
 	}
 }
