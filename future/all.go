@@ -17,15 +17,11 @@ func All[T any](ctx context.Context, fns ...func() (T, error)) ([]T, error) {
 	results := make([]T, len(fns))
 	errors := make(chan error, len(fns)) // Buffered channel for errors
 	var wg sync.WaitGroup
-	wg.Add(len(fns))
 
 	for i, fn := range fns {
-		go func(i int, fn func() (T, error)) {
-			defer wg.Done()
-
+		wg.Go(func() {
 			resultSingleCh := make(chan T, 1)
 			errSingleCh := make(chan error, 1)
-
 			go func() {
 				res, err := fn()
 				if err != nil {
@@ -43,7 +39,7 @@ func All[T any](ctx context.Context, fns ...func() (T, error)) ([]T, error) {
 			case <-ctx.Done():
 				errors <- ctx.Err()
 			}
-		}(i, fn)
+		})
 	}
 
 	wg.Wait()
