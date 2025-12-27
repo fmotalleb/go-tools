@@ -26,12 +26,8 @@ func Any[T any](ctx context.Context, fns ...func() (T, error)) (T, error) {
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel() // Cancel all other goroutines once one has completed
-
 	for _, fn := range fns {
-		wg.Add(1)
-		go func(fn func() (T, error)) {
-			defer wg.Done()
-
+		wg.Go(func() {
 			resultSingleCh := make(chan T, 1)
 			errSingleCh := make(chan error, 1)
 
@@ -54,7 +50,7 @@ func Any[T any](ctx context.Context, fns ...func() (T, error)) (T, error) {
 			case <-ctx.Done():
 				// Don't add ctx.Err() to errors, to avoid race condition
 			}
-		}(fn)
+		})
 	}
 
 	go func() {
