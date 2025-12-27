@@ -3,17 +3,15 @@ package channel
 
 import "sync"
 
-func Zip[T interface{}](channels ...<-chan T) <-chan T {
-	output := make(chan T)
+func Zip[T interface{}](buffer int, channels ...<-chan T) <-chan T {
+	output := make(chan T, buffer)
 	wg := new(sync.WaitGroup)
 	for _, ch := range channels {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			for i := range ch {
 				output <- i
 			}
-		}()
+		})
 	}
 	go func() {
 		wg.Wait()

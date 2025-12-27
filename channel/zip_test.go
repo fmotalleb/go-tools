@@ -24,7 +24,7 @@ func TestZipChannel(t *testing.T) {
 			}
 			close(ch2)
 		}()
-		zipped := channel.Zip(ch1, ch2)
+		zipped := channel.Zip(1, ch1, ch2)
 		ans := make([]int, 0)
 		for val := range zipped {
 			ans = append(ans, val)
