@@ -34,6 +34,70 @@ func TestWithReload_TaskReturnsError(t *testing.T) {
 	}
 }
 
+// TestWithReload_ReloadTimeoutUnreached verifies that WithReload correctly handles
+// a reload signal arriving during the reload timeout grace period without returning prematurely.
+//
+// Context:
+// - reload timeout: a grace period before forcibly restarting a task that hasn't acknowledged cancellation.
+// - This test simulates a task that is running when the reload timeout starts.
+//
+// Test Steps:
+// 1. Start WithReload in a goroutine with a test context.
+// 2. Wait for the first task start via startSig channel.
+// 3. Sleep 5ms to simulate elapsed time, allowing the reload timeout to start counting.
+// 4. Send a reload signal via the reload channel.
+// 5. Wait for the second task start to confirm the reload actually restarted the task.
+// 6. Check that WithReload has NOT returned unexpectedly by observing errCh.
+//
+// Channels:
+// - reload: triggers task restart
+// - errCh: signals unexpected return of WithReload
+// - startSig: signals task start for liveness observation
+//
+// Notes:
+//   - time.Sleep is necessary to simulate real elapsed time so that the reload arrives
+//     after the grace period starts, reproducing the edge case.
+//   - All select statements have bounded timeouts to prevent test hangs.
+//   - The test ensures liveness, correct task restart, and proper reload timeout handling.
+func TestWithReload_ReloadTimeoutUnreached(t *testing.T) {
+	reload := make(chan bool, 2)
+	errCh := make(chan error, 2)
+	startSig := make(chan struct{}, 2)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		errCh <- WithReload(
+			ctx,
+			reload,
+			func(ctx context.Context) error {
+				startSig <- struct{}{} // signal task start
+				<-ctx.Done()
+				return nil
+			},
+			time.Millisecond,
+		)
+	}()
+	// Wait for first task start
+	select {
+	case <-startSig:
+	case <-time.After(20 * time.Millisecond):
+		t.Fatal("task did not start initially")
+	}
+	time.Sleep(5 * time.Millisecond)
+	// Trigger reload
+	reload <- true
+
+	// Wait for second task start (reload worked)
+	select {
+	case err := <-errCh:
+		t.Fatalf("WithReload returned unexpectedly: %v", err)
+	case <-startSig:
+		// success: task restarted
+	case <-time.After(20 * time.Millisecond):
+		t.Fatal("task was not restarted on reload")
+	}
+}
+
 func TestWithReload_ReloadChannelClosed(t *testing.T) {
 	reload := make(chan bool)
 	close(reload)
