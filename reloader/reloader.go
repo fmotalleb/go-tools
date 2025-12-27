@@ -150,6 +150,7 @@ func handleTask[T any](
 			return ErrReloadChannelClosed, true
 		}
 		rLog.Debug("reload signal received")
+		resetTimer(timer, timeout)
 		// Wait for the task to finish, but only for the timeout duration.
 		select {
 		case <-errCh:
@@ -157,7 +158,6 @@ func handleTask[T any](
 			rLog.Debug(
 				"task finished in grace window",
 			)
-			resetTimer(timer, timeout)
 			return nil, false
 		case <-timer.C:
 			// The task did not finish in time. This is a terminal event.
