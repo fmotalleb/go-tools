@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"runtime"
 	"sync/atomic"
 	"syscall"
 	"testing"
@@ -181,6 +182,10 @@ func TestWithOsSignal(t *testing.T) {
 }
 
 func TestWithOsSignal_NoExplicitSignals(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows platform does not support default signals")
+		return
+	}
 	parent, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -195,7 +200,7 @@ func TestWithOsSignal_NoExplicitSignals(t *testing.T) {
 	}
 
 	// This go routine will run WithOsSignal in the background.
-	// It should terminate when os.Interrupt is sent.
+	// It should terminate when syscall.SIGHUP is sent.
 	errCh := make(chan error, 1)
 	go func() {
 		errCh <- WithOsSignal(parent, task, time.Second)
@@ -210,12 +215,12 @@ func TestWithOsSignal_NoExplicitSignals(t *testing.T) {
 	// Send an interrupt signal to the process.
 	// This should be handled by WithOsSignal's signal.Notify,
 	// which is listening to DefaultSignals.
-	// os.Interrupt is part of DefaultSignals on both Unix and Windows.
+	// syscall.SIGHUP is part of DefaultSignals Unix (windows does not support this).
 	p, err := os.FindProcess(os.Getpid())
 	if err != nil {
 		t.Fatalf("Failed to find process: %v", err)
 	}
-	err = p.Signal(os.Interrupt)
+	err = p.Signal(syscall.SIGHUP)
 	if err != nil {
 		t.Fatalf("Failed to send signal: %v", err)
 	}
