@@ -44,7 +44,9 @@ func WithOsSignal(
 	if len(signalsToUse) == 0 {
 		signalsToUse = DefaultSignals
 	}
-
+	if len(signalsToUse) == 0 {
+		return task(parent)
+	}
 	reloadSig := make(chan os.Signal, 1)
 	signal.Notify(reloadSig, signalsToUse...)
 	defer signal.Stop(reloadSig)
