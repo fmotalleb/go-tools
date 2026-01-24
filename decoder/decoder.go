@@ -30,7 +30,7 @@ func GetHooks() []mapstructure.DecodeHookFunc {
 
 func Build[T any](item T, extraHooks ...mapstructure.DecodeHookFunc) (*mapstructure.Decoder, error) {
 	allHooks := GetHooks()
-	allHooks = append(hooks.GetExtraHooks(), allHooks...)
+	allHooks = append(allHooks, hooks.GetExtraHooks()...)
 	if len(extraHooks) != 0 {
 		allHooks = append(extraHooks, allHooks...)
 	}
