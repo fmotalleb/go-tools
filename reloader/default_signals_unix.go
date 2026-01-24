@@ -8,6 +8,5 @@ import (
 )
 
 var DefaultSignals = []os.Signal{
-	os.Interrupt,
 	syscall.SIGHUP,
 }

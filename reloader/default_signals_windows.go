@@ -6,6 +6,4 @@ import (
 	"os"
 )
 
-var DefaultSignals = []os.Signal{
-	os.Interrupt,
-}
+var DefaultSignals = []os.Signal{}
