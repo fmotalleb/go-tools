@@ -12,7 +12,6 @@ import (
 func GetHooks() []mapstructure.DecodeHookFunc {
 	return []mapstructure.DecodeHookFunc{
 		hooks.EnvSubst(),
-		hooks.StringToSliceHookFunc(","),
 		mapstructure.StringToTimeDurationHookFunc(),
 		mapstructure.StringToTimeHookFunc(time.RFC3339),
 		hooks.LooseTypeCaster(),
@@ -22,6 +21,7 @@ func GetHooks() []mapstructure.DecodeHookFunc {
 		mapstructure.StringToURLHookFunc(),
 		mapstructure.StringToIPHookFunc(),
 		mapstructure.StringToIPNetHookFunc(),
+		hooks.StringToSliceHookFunc(","),
 		mapstructure.RecursiveStructToMapHookFunc(),
 		// mapstructure.StringToBasicTypeHookFunc(),
 		DecodeHookFunc(),
