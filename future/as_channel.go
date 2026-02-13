@@ -8,3 +8,11 @@ func Channel(get func()) <-chan *struct{} {
 	}()
 	return ch
 }
+
+func ChannelValue[T any](get func() T) <-chan T {
+	ch := make(chan T, 1)
+	go func() {
+		ch <- get()
+	}()
+	return ch
+}
