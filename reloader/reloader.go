@@ -33,7 +33,7 @@ var (
 //     its context is canceled. If the task returns on its own, WithReload will exit.
 //   - timeout: The grace period for the task to shut down after a reload signal.
 //   - signals: An optional list of OS signals to listen for. If not provided, it defaults
-//     to os.Interrupt and syscall.SIGHUP.
+//     to syscall.SIGHUP.
 func WithOsSignal(
 	parent context.Context,
 	task func(context.Context) error,
