@@ -72,3 +72,15 @@ func DurationOr(key string, def ...time.Duration) time.Duration {
 	}
 	return cmp.Or(def...)
 }
+
+func Float64Or(key string, def ...float64) float64 {
+	if key == "" {
+		return cmp.Or(def...)
+	}
+	if strVal := os.Getenv(key); strVal != "" {
+		if val, err := strconv.ParseFloat(strVal, 64); err == nil {
+			return val
+		}
+	}
+	return cmp.Or(def...)
+}

@@ -76,6 +76,34 @@ func TestIntOr(t *testing.T) {
 	}
 }
 
+func TestFloat64Or(t *testing.T) {
+	const key = "TEST_FLOAT_OR"
+
+	os.Unsetenv(key)
+	if got := env.Float64Or(key, 42); got != 42 {
+		t.Errorf("FloatOr() = %v; want %v", got, 42)
+	}
+
+	t.Setenv(key, "123")
+	if got := env.Float64Or(key, 42); got != 123 {
+		t.Errorf("Float64Or() = %v; want %v", got, 123)
+	}
+
+	t.Setenv(key, "invalid")
+	if got := env.Float64Or(key, 42); got != 42 {
+		t.Errorf("Float64Or() = %v; want %v", got, 42)
+	}
+
+	t.Setenv(key, "7.63")
+	if got := env.Float64Or(key, 7); got != 7.63 {
+		t.Errorf("Float64Or() = %v; want %v", got, 7.63)
+	}
+
+	if got := env.Float64Or("", 7); got != 7 {
+		t.Errorf("Float64Or() with empty key = %v; want %v", got, 7)
+	}
+}
+
 func TestSliceOr(t *testing.T) {
 	const key = "TEST_SLICE_OR"
 
