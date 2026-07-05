@@ -38,9 +38,22 @@ func applyRecursive(data any, val reflect.Value, visited map[uintptr]bool, errs 
 		return
 	}
 
-	// Dereference pointers, allocating nil ones (when we can) so defaults
-	// can still reach fields inside optional sub-structs.
-	for val.Kind() == reflect.Pointer {
+	switch val.Kind() {
+	case reflect.Pointer:
+		// Cycle/visited tracking must only ever key off values that are
+		// genuinely pointer-typed in the data model (e.g. `Next *Node`).
+		// Earlier revisions also wrapped every traversed struct/slice/map
+		// field in .Addr() purely to get a settable handle, and fed that
+		// synthetic pointer through this same visited-address check. That's
+		// unsound: in Go, a struct's first field starts at the same address
+		// as the struct itself, so &container == &container.FirstField for
+		// any single/first-field struct. That collision made the visited
+		// set report a false "already seen" on the very first visit to
+		// that field, silently skipping it. By only entering this branch
+		// for values that were *already* reflect.Pointer before we ever
+		// touched them (never for our own .Addr() wrapping, which no longer
+		// happens - see the other cases below), the addresses we track are
+		// always genuine distinct allocations, so no false positives.
 		if val.IsNil() {
 			if !val.CanSet() {
 				return
@@ -52,10 +65,8 @@ func applyRecursive(data any, val reflect.Value, visited map[uintptr]bool, errs 
 			return
 		}
 		visited[ptr] = true
-		val = val.Elem()
-	}
+		applyRecursive(data, val.Elem(), visited, errs)
 
-	switch val.Kind() {
 	case reflect.Struct:
 		t := val.Type()
 		for i := 0; i < val.NumField(); i++ {
@@ -73,21 +84,20 @@ func applyRecursive(data any, val reflect.Value, visited map[uintptr]bool, errs 
 				}
 			}
 
-			if fv.CanAddr() {
-				applyRecursive(data, fv.Addr(), visited, errs)
-			} else {
-				applyRecursive(data, fv, visited, errs)
-			}
+			// fv is already addressable/settable whenever val (the parent
+			// struct) is - no .Addr()/re-dereference wrapping needed. If fv
+			// is itself pointer-typed, it lands in the Pointer case above on
+			// its own terms, with its own genuine target address.
+			applyRecursive(data, fv, visited, errs)
 		}
 
 	case reflect.Slice, reflect.Array:
+		// Slice elements are always addressable regardless of whether the
+		// slice header itself is addressable (they live in the backing
+		// array); array elements are addressable iff the array is. Either
+		// way, no synthetic pointer wrapping is needed here.
 		for i := 0; i < val.Len(); i++ {
-			elem := val.Index(i)
-			if elem.CanAddr() {
-				applyRecursive(data, elem.Addr(), visited, errs)
-			} else {
-				applyRecursive(data, elem, visited, errs)
-			}
+			applyRecursive(data, val.Index(i), visited, errs)
 		}
 
 	case reflect.Map:
@@ -95,15 +105,14 @@ func applyRecursive(data any, val reflect.Value, visited map[uintptr]bool, errs 
 		for _, key := range val.MapKeys() {
 			// Map values obtained via MapIndex are never addressable/settable,
 			// so struct (or nested pointer/slice) values living inside a map
-			// can't be defaulted in place. Work on an addressable copy and
-			// write it back into the map afterward.
+			// can't be defaulted in place. Work on a freshly allocated,
+			// inherently addressable copy and write it back into the map
+			// afterward - no .Addr() wrapping/visited tracking needed since
+			// this is a brand-new allocation, never colliding with any
+			// existing address.
 			copyVal := reflect.New(elemType).Elem()
 			copyVal.Set(val.MapIndex(key))
-			if copyVal.CanAddr() {
-				applyRecursive(data, copyVal.Addr(), visited, errs)
-			} else {
-				applyRecursive(data, copyVal, visited, errs)
-			}
+			applyRecursive(data, copyVal, visited, errs)
 			val.SetMapIndex(key, copyVal)
 		}
 	}
