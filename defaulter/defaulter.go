@@ -58,7 +58,17 @@ func applyRecursive(data any, val reflect.Value, visited map[uintptr]bool, errs 
 			if !val.CanSet() {
 				return
 			}
-			val.Set(reflect.New(val.Type().Elem()))
+			// Only allocate the pointer when its element type could
+			// contain nested tagged defaults (structs, maps, slices,
+			// or further pointers). For basic types like *string or
+			// *int there is nothing to recurse into, and keeping them
+			// nil lets callers distinguish "unset" from "set to zero".
+			switch val.Type().Elem().Kind() {
+			case reflect.Struct, reflect.Map, reflect.Slice, reflect.Ptr:
+				val.Set(reflect.New(val.Type().Elem()))
+			default:
+				return
+			}
 		}
 		ptr := val.Pointer()
 		if visited[ptr] {

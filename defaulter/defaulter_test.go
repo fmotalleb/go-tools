@@ -118,6 +118,20 @@ func TestApplyDefaults_EnvDoesNotOverwriteExplicitValue(t *testing.T) {
 	}
 }
 
+type envMissing struct {
+	Value *string `env:"DEFAULTER_TEST_VALUE"`
+}
+
+func TestApplyDefaults_NoChangeWhenEnvUnset(t *testing.T) {
+	v := &envMissing{}
+	if err := defaulter.ApplyDefaults(v, nil); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if v.Value != nil {
+		t.Errorf("Value = %v, want %v", v.Value, nil)
+	}
+}
+
 // --- nested structs, slices, maps -----------------------------------------------------
 
 type inner struct {
