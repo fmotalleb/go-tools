@@ -132,6 +132,22 @@ func TestApplyDefaults_NoChangeWhenEnvUnset(t *testing.T) {
 	}
 }
 
+type envMissingComplex struct {
+	Value *struct {
+		test string
+	}
+}
+
+func TestApplyDefaults_NoChangeWhenEnvUnsetComplex(t *testing.T) {
+	v := &envMissingComplex{}
+	if err := defaulter.ApplyDefaults(v, nil); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if v.Value != nil {
+		t.Errorf("Value = %v, want %v", v.Value, nil)
+	}
+}
+
 // --- nested structs, slices, maps -----------------------------------------------------
 
 type inner struct {

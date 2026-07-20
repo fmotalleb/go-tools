@@ -63,12 +63,17 @@ func applyRecursive(data any, val reflect.Value, visited map[uintptr]bool, errs 
 			// or further pointers). For basic types like *string or
 			// *int there is nothing to recurse into, and keeping them
 			// nil lets callers distinguish "unset" from "set to zero".
-			switch val.Type().Elem().Kind() {
-			case reflect.Struct, reflect.Map, reflect.Slice, reflect.Ptr:
-				val.Set(reflect.New(val.Type().Elem()))
-			default:
+		switch val.Type().Elem().Kind() {
+		case reflect.Struct:
+			if !hasTaggedFields(val.Type().Elem()) {
 				return
 			}
+			val.Set(reflect.New(val.Type().Elem()))
+		case reflect.Map, reflect.Slice, reflect.Ptr:
+			val.Set(reflect.New(val.Type().Elem()))
+		default:
+			return
+		}
 		}
 		ptr := val.Pointer()
 		if visited[ptr] {
@@ -126,6 +131,21 @@ func applyRecursive(data any, val reflect.Value, visited map[uintptr]bool, errs 
 			val.SetMapIndex(key, copyVal)
 		}
 	}
+}
+
+// hasTaggedFields reports whether t (expected to be a struct type) contains
+// at least one exported field carrying a default or env tag.
+func hasTaggedFields(t reflect.Type) bool {
+	for i := 0; i < t.NumField(); i++ {
+		f := t.Field(i)
+		if !f.IsExported() {
+			continue
+		}
+		if f.Tag.Get("default") != "" || f.Tag.Get("env") != "" {
+			return true
+		}
+	}
+	return false
 }
 
 // applyDefault decodes def (after template evaluation) into field, but only
